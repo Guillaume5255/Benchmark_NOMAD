@@ -1,5 +1,6 @@
 #include "blackbox.hpp"
 #include <chrono>
+#include <omp.h>
 
 int main(){
     int n = 5, seed= 1;
@@ -36,26 +37,33 @@ int main(){
     }
     std::cout<<"\n\n Benchmark des durées moyennes (10 eval) en fonction de la dimension pour chaque problème\n";
     
-    
+    int nbMaxEval = 10;
     for(int pbNum = 1; pbNum< 25; pbNum++){
     	std::cout<< "exec. time for pb "<<pbNum<<"\t:\t";
     	
-    	for(n = 2; n<1024; n=2*n){
+    	for(n = 2; n<1025; n=2*n){
+            auto startbb = std::chrono::high_resolution_clock::now();
         	Blackbox bb(n, pbNum, seed);
+            auto stopbb = std::chrono::high_resolution_clock::now();
+            
+            auto meanbuild = std::chrono::duration_cast<std::chrono::microseconds>(stopbb - startbb).count(); 
+            std::cout<<"("<<meanbuild<<")";
+
         	double meanDuration = 0;
-        	#pragma omp parallel for shared(meanDuration)
-        	for(int nbEval = 0; nbEval<10; nbEval++){
-        		x = std::vector<double>(n, (nbEval-5)/2);
-        		
-        		auto start = std::chrono::high_resolution_clock::now();
-        		bb.f(x);
-        		auto stop = std::chrono::high_resolution_clock::now();
-        		
-        		#pragma omp atomic
-        		meanDuration += std::chrono::duration_cast<std::chrono::seconds>(stop - start).count(); 
-        		
-        	}
-        	meanDuration = meanDuration/10;
+
+        	#pragma omp parallel for reduction(+ : meanDuration) num_threads(8)
+            for(int nbEval = 0; nbEval<nbMaxEval; nbEval++)
+            {
+                 std::vector<double> x(n, (nbEval-5)/2);
+
+                auto start = std::chrono::high_resolution_clock::now();
+                bb.f(x);
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                meanDuration += std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count(); 
+            }
+
+        	meanDuration = meanDuration/nbMaxEval;
         	std::cout<< meanDuration <<"\t";
     	}
     	std::cout<<"\n";
