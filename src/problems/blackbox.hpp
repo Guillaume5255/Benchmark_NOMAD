@@ -4,9 +4,14 @@
 #include <vector>
 #include <bits/stdc++.h> 
 #include <unistd.h>
+#include <omp.h>
+#include <algorithm>    // std::max
 
 
 //#define _USE_MATH_DEFINES
+
+//#define _PARALLEL
+
 
 using namespace std;
 
@@ -20,9 +25,15 @@ public:
 
 //private: to comment when doing unit test 
     const int _n,funcNum,bseed; // dimension, problem number and seed for the generation of random matrix
-    double _alpha, _beta, _fopt = 0.0, _hi;
-    std::vector<std::vector<double>> _Q,_R, C, Y;
-    std::vector<double> _xopt, _ones, w;
+    double _alpha, _beta, 
+            _fopt = 0.0,
+            _f0 = 0;
+    int _hi;// needed in problems 21 and 22
+
+    std::vector<std::vector<double>> _Q,_R, //rotation matrix : randomly generated at the blackbox built 
+                                    C, Y;
+    std::vector<double> _xopt, //value for optimal solution (when defined in the problem)
+                        _ones, w;
     
     //helper methodes
     std::vector<std::vector<double>> MatrixProduct(std::vector<std::vector<double>> A, std::vector<std::vector<double>> B) ;
