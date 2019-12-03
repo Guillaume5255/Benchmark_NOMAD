@@ -1,8 +1,10 @@
 # Benchmark_NOMAD
-In this depot, an implementation of a set of problems is used to do scalability and performance benchmark over 4 poll strategies implemented in NOMAD 4.
+In this depot, an implementation of a set of problems is used to do scalability and performance benchmark over 4 poll strategies implemented in NOMAD 4, in an environment, where the amount of parallel ressources (cpu, clusters,...) is huge compared with the number of inputs of a given blackbox.
 
 Problems are implemented in /src/problems,
-when make is run in a terminal open in /src, it compiles benchmark.cpp, builds (if not already exists) the directory /runs and put the binary file benchmarker.exe in it. When executed, this program produces the history of the amelioration of the objectives functions optimized by NOMAD 4. The run history has the name :
+when make is run in a terminal open in /src, it compiles benchmark.cpp, builds (if not already exists) the directory /runs and put 
+the binary file benchmarker.exe in it. When executed, this program produces the history of the amelioration of the objectives 
+functions optimized by NOMAD 4. The run history has the name :
 run_dimension_problemNum_problemSeed_pollStrategy_numberOf2nBlocks_.txt 
 with :
 
@@ -27,4 +29,7 @@ column is the value of f that led to the corresponding success.
 All problems are bounded below by 0, are defined for x \in [-5, 5]^n and are without any constraint.
 An idea that could be exploited to build constrained problems would be to use one of those analytic problems ase objectif, ant one 
 or several others as constraints.
+
+The program Benchmark.jl written in julia, exploits the data contained in the files created by the execution of benchmarker.exe to 
+extract relevant data about the runs.
 
