@@ -103,8 +103,7 @@ void optimize(int dim, int pb_num, int pb_seed, int poll_strategy, int nb_of_2n_
 
 
     auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
-
-
+	
     params->getPbParams()->setAttributeValue("X0", x0);
 
     switch (poll_strategy)

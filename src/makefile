@@ -61,11 +61,11 @@ RUN_DIR		= ../run
 endif
 
 	
-buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) $(LIB_DYNAMIC) benchmark.cpp $(PB_DIR_NAME)/blackbox.o init
+buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) $(LIB_DYNAMIC) benchmark.cpp buildBlackbox #$(PB_DIR_NAME)/blackbox.o
 	$(COMPILE) -o $(RUN_DIR)/benchmarker.exe benchmark.cpp $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
 	
 buildBlackbox: $(PB_DIR_NAME)/blackbox.cpp $(PB_DIR_NAME)/blackbox.hpp
-	g++ -c -o $(PB_DIR_NAME)/blackbox.o $(PB_DIR_NAME)/blackbox.cpp
+	g++ -Wall -fopenmp -c -o $(PB_DIR_NAME)/blackbox.o $(PB_DIR_NAME)/blackbox.cpp
 	
 init:
 	mkdir $(RUN_DIR)
