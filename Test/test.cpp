@@ -8,19 +8,33 @@ using namespace std;
 
 //#define _PARALLEL
 
-int _n = 2000;
+int _n = 1000;
 
 std::vector<double> RandomDirection(int max){ // generates a random std::vector in [[-max, max ]]^n
     std::vector<double> x(_n,0.0);
-    for(int i = 0 ; i <_n ;i++ )
+    double norm = 0.0;
+    for(int i = 0 ; i <_n ;i++ ){
         x[i] =  double(rand()%(2*max) -max);
+        norm += x[i]*x[i];
+    }
+    norm = sqrt(norm);
+    for(int i = 0; i<_n; i++){
+        x[i]=x[i]/norm;
+    }
     return x;
 }
 
 double* RandomArr(int max){ // generates a random std::vector in [[-max, max ]]^n
     double * x = new double[_n];
-    for(int i = 0 ; i <_n ;i++ )
+    double norm = 0.0;
+    for(int i = 0 ; i <_n ;i++ ){
         x[i] =  double(rand()%(2*max) -max);
+        norm += x[i]*x[i];
+    }
+    norm = sqrt(norm);
+    for(int i = 0; i<_n; i++){
+        x[i]=x[i]/norm;
+    }
     return x;
 }
 
