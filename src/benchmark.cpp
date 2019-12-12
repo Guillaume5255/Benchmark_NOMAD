@@ -179,15 +179,15 @@ int main (int argc, char **argv)
 {
 
     int DIM_MIN=4; 
-    int PB_NUM_MIN=1; 
+    int PB_NUM_MIN=15; 
     int PB_SEED_MIN=0; 
-    int POLL_STRATEGY_MIN=1;
+    int POLL_STRATEGY_MIN=3;
     int NB_2N_BLOCK_MIN=1;
     
     int DIM_MAX=5; 
-    int PB_NUM_MAX=25; 
-    int PB_SEED_MAX=1; 
-    int POLL_STRATEGY_MAX=5;
+    int PB_NUM_MAX=16; 
+    int PB_SEED_MAX=20; 
+    int POLL_STRATEGY_MAX=4;
     int NB_2N_BLOCK_MAX=17;
 
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
