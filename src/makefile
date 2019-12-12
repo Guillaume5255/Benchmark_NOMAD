@@ -5,7 +5,6 @@ endif
 UNAME := $(shell uname)
 #$(shell pwd | sed 's/\/examples.*//')
 
-
 NOMAD_DIR	= $(shell pwd | sed 's/\/Benchmark_NOMAD\/src*//')/nomad.4.0.0
 PB_DIR_NAME	= problems
 PB_DIR		= $(shell pwd)/$(PB_DIR_NAME)
@@ -16,7 +15,6 @@ INCLUDE_DIR	= $(BUILD_DIR)/include
 LIB_DIR		= $(BUILD_DIR)/lib
 BIN_DIR		= $(BUILD_DIR)/bin
 EXE		= $(BIN_DIR)/benchmark.exe
-
 
 UTILS_LIB_CURRENT_VERSION = 4.0.0
 EVAL_LIB_CURRENT_VERSION = 4.0.0
@@ -31,6 +29,8 @@ ALGOS_NAME_AND_VERSION	= nomadAlgos.$(ALGOS_LIB_CURRENT_VERSION)
 
 LIB_DYNAMIC		= -l$(UTILS_NAME_AND_VERSION) -l$(EVAL_NAME_AND_VERSION) -l$(ALGOS_NAME_AND_VERSION)
 # $(SGTE_LIB_DYNAMIC)
+
+CXX =		g++
 
 ifeq ($(VARIANT), release)
 CXXFLAGS	= -O2

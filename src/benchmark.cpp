@@ -181,7 +181,7 @@ int main (int argc, char **argv)
     int DIM_MIN=4; 
     int PB_NUM_MIN=1; 
     int PB_SEED_MIN=0; 
-    int POLL_STRATEGY_MIN=3;
+    int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
     
     int DIM_MAX=5; 
