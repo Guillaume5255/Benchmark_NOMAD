@@ -181,14 +181,14 @@ int main (int argc, char **argv)
     int DIM_MIN=4; 
     int PB_NUM_MIN=1; 
     int PB_SEED_MIN=0; 
-    int POLL_STRATEGY_MIN=3;
+    int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
     
     int DIM_MAX=5; 
     int PB_NUM_MAX=25; 
     int PB_SEED_MAX=1; 
     int POLL_STRATEGY_MAX=5;
-    int NB_2N_BLOCK_MAX=16;
+    int NB_2N_BLOCK_MAX=17;
 
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
 
@@ -197,16 +197,16 @@ int main (int argc, char **argv)
             for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices (with householder) of each problem
 
                 for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
-                    
-                    
+
+
                     if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
-                        NOMAD::Point x0((size_t)dim, -4);
+                        NOMAD::Point x0((size_t)dim, -3);
                         optimize(dim, pb_num, pb_seed, poll_strategy, 1, x0);
                     }
                     else
                     {
-                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block+1){
-                            NOMAD::Point x0((size_t)dim, -4);
+                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block){ //we increase the number of 2n blocks to see the effect on the optimization
+                            NOMAD::Point x0((size_t)dim, -3);
                             optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
                         }
                     }
@@ -216,7 +216,5 @@ int main (int argc, char **argv)
             }
         }
     }
-
-
     return 0;
 }

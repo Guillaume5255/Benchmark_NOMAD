@@ -88,9 +88,13 @@ int main(){
     double **B = new double*[_n];
     std::vector<std::vector<double>> C(_n,std::vector<double>(_n,0.0)), D(_n,std::vector<double>(_n,0.0));
     std::cout<<"initialisation des matrices et des tableaux\n";
+    srand (51);
     for(int i = 0; i<_n; i++){
         A[i] = RandomArr(100000);
         B[i] = RandomArr(100000);
+    }
+    srand (51);
+    for(int i = 0; i<_n; i++){
         C[i] = RandomDirection(100000);
         D[i] = RandomDirection(100000);
     }

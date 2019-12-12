@@ -15,7 +15,7 @@ mutable struct Run_t
     pb_num::Int64
     pb_seed::Int64
     poll_strategy::Int64
-
+    nb_2n_blocks::Int64
     eval_nb::Array{Float64,1}
     eval_f::Array{Float64,1}
 end
@@ -23,12 +23,12 @@ end
 
 
 
-dir0 = "runtest"# "AllRuns/"*listOfDirs[1]
+dir0 = "../run"# "AllRuns/"*listOfDirs[1]
 
 function ExtractData(dir::String) 
     #fills an array of Run_t objects, each object contains the data of the run : 
-    #wich dimension, which problem, which seed, which strategy
-    #all files are of the format run_dim_pbNumber_pbSeed_pollStrategy_.txt
+    #wich dimension, which problem, which seed, which strategy, which number of 2n blocks
+    #all files are of the format run_dim_pbNumber_pbSeed_pollStrategy_nbOf2nBlocks_.txt
     # all problems are scalable (dim \in N^*)
     #there are 24 problems (pbNumber \in [[1;24]])
     #pbSeed \in N
@@ -49,6 +49,7 @@ function ExtractData(dir::String)
             parse(Int,runAttr[3]),
             parse(Int,runAttr[4]),
             parse(Int,runAttr[5]),
+            parse(Int,runAttr[6]),
             runData[:,1],
             runData[:,2])
             #println("minimum f value : "*string(minimum(run.eval_f)))
@@ -62,9 +63,10 @@ end
 
 function NormalizeRun(runs::Array{Run_t,1})
     for run in runs
-        fmax = maximum(run.eval_f)
+        fmax = run.eval_f[1]
         for i in 1:size(run.eval_f)[1]
             run.eval_f[i]=run.eval_f[i]/fmax
+            run.eval_nb[i]= run.eval_nb[i]/(run.nb_2n_blocks*2*run.dim)
         end
     end
     return runs
@@ -81,8 +83,8 @@ function ObjectifEvolution()
     j = 1
     for run in normalizedRuns
         i = run.poll_strategy
-        Fvalue = [f+0.000000001 for f in run.eval_f]
-        push!(allplots, plot!(allplots[j],run.eval_nb, Fvalue, color = colors[i] ,xaxis=:log, yaxis=:log,m=markers[j], leg = false,linetype=:steppre)) #yaxis=:log) )# fmt = :png) # reuse = true m = markers[i]
+        Fvalue = [f+1 for f in run.eval_f]
+        push!(allplots, plot!(allplots[j],run.eval_nb, Fvalue, color = colors[i] ,xaxis=:log, yaxis=:log, leg = false,linetype=:steppre)) #yaxis=:log) )# fmt = :png) # reuse = true m = markers[i]
         if (j<4)
             j+=1
         else

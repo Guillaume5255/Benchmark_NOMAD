@@ -19,7 +19,7 @@ int main(){
         
         std::string checkTest = isEqual ? "OK" : "Problem";
         
-        std::cout<<"valeur de f"<< i <<" : \t"<<f<<"\t|\t "<<g<< "\t|"+checkTest <<"\n";   
+        std::cout<<"valeur de f"<< i <<" : "<< std::left<<f<<std::setw(25)<<" | "<<g<< std::setw(25) << "|"+checkTest <<"\n";   
     }
     
     std::cout<<"\n\n Vérification détermnisme sur 2 instance de la boite noire avec la meme graine aléatoire \n \n";
@@ -36,7 +36,7 @@ int main(){
         
         std::string checkTest = isEqual ? "OK" : "Problem";
         
-        cout<<"valeur de f"<< i <<" : \t"<<f<<"\t|\t "<<g<< "\t|"+checkTest <<"\n";   
+        cout<<"valeur de f"<< i <<" : "<< std::left<<f<<std::setw(25)<<" | "<<g<< std::setw(25) << "|"+checkTest <<"\n";   
     }
     std::string successfulValueTest;
     if (ValueTestSuccessful)
