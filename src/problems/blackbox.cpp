@@ -167,13 +167,14 @@ std::vector<double> Blackbox::RandomOnesvector(){ // generates a random std::vec
 std::vector<std::vector<double>> Blackbox::Householder(std::vector<double> direction){ //given a  normalized direction, returns the computation of the associated householder matrix
     std::vector<std::vector<double>> H(_n, std::vector<double>(_n));
 #ifdef _PARALLEL
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for
 #endif
     for(int i = 0; i<_n; i++){
-        for(int j = 0; j<_n ;j++){
-            H[i][j]= -2*direction[i]*direction[j];
-            if (i==j)
-                H[i][j]+=1;
+        H[i][i] = 1-2*direction[i]*direction[i];
+        for(int j = i+1; j<_n-1 ;j++){
+            double val = -2*direction[i]*direction[j]; 
+            H[i][j] = val;
+            H[j][i] = val;
         }
     }
     return H;
