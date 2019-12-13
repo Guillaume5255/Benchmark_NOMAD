@@ -217,19 +217,21 @@ end
 function MeanPerformanceOfIncreasingNbOfPoint()
     #to run with one strategy where the number of 2n blocks is increasing
     #to see the effect of this increase in the number of point at each poll step
-    colors = [:blue :yellow :orange :red :black]
+    colors = [:blue :yellow :orange :red :brown :black]
     runs = ExtractData(dir0)
     p = plot()
-    blockstep = 5
-    abscisse = [2^n for n in 0:blockstep-1]
+    blockstep = 21 #nb of iterations changing nb2nBlock
+    #abscisse = [2^n for n in 0:blockstep-1]  #to use when the number of 2n block is increased by multiplicating by 2
+    abscisse = [3*n+1 for n in 0:blockstep-1]
     ordonnee = zeros(blockstep)
     runsSize = size(runs)[1]
     for run in runs
-        i = Int(log(run.nb_2n_blocks)/log(2))+1
+        #i = Int(log(run.nb_2n_blocks)/log(2))+1 #to use when the number of 2n block is increased by multiplicating by 2
+        i = Int((run.nb_2n_blocks-1)/3)+1
         ordonnee[i]+= run.eval_f[end]/(runsSize/blockstep)
     end
     for j in 1:blockstep
-        p = plot!(p,[abscisse[j]], [ordonnee[j]],seriestype=:scatter, color = colors[j], legend = false  )
+        p = plot!(p,[abscisse[j]], [ordonnee[j]],seriestype=:scatter,  legend = false)#, color = colors[j], )
     end
 
     Title = "mean efficiency of increasing number of points "

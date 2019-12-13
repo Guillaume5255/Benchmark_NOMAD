@@ -186,9 +186,9 @@ int main (int argc, char **argv)
     
     int DIM_MAX=5; 
     int PB_NUM_MAX=16; 
-    int PB_SEED_MAX=20; 
+    int PB_SEED_MAX=10; 
     int POLL_STRATEGY_MAX=4;
-    int NB_2N_BLOCK_MAX=17;
+    int NB_2N_BLOCK_MAX=62;
 
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
 
@@ -205,7 +205,7 @@ int main (int argc, char **argv)
                     }
                     else
                     {
-                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block){ //we increase the number of 2n blocks to see the effect on the optimization
+                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block+=3){ //we increase the number of 2n blocks to see the effect on the optimization
                             NOMAD::Point x0((size_t)dim, -3);
                             optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
                         }
