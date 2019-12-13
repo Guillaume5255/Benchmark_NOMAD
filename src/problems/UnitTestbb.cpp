@@ -6,12 +6,12 @@ int main(){
     int n = 128, seed= 1;
     std::vector<double> x(n,3.0);
     bool ValueTestSuccessful = true;
-	std::cout<<"\n\n Vérification détermnisme sur la meme instance de la boite noire \n \n";
+	std::cout<<"\n\n Vérification déterimnisme sur la meme instance de la boite noire \n \n";
     for(int i = 1; i< 25; i++){
         Blackbox bb(n, i, seed);
 
         double f=bb.f(x);
-        double g=bb.f(x) ;
+        double g=bb.f(x);
         
         bool isEqual = f==g;
         if(!isEqual)
@@ -54,12 +54,12 @@ int main(){
     for(int pbNum = 1; pbNum< 25; pbNum++){
     	std::cout<< "exec. time for pb "<<pbNum<<"\t:\t";
     	for(n = 2; n<1025; n = 2*n){
-            auto startbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
+            	auto startbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
         	Blackbox bb(n, pbNum, seed);
-            auto stopbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
+            	auto stopbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
             
-            auto meanbuild = stopbb-startbb;//std::chrono::duration_cast<std::chrono::microseconds>(stopbb - startbb).count(); 
-            std::cout<<"("<<meanbuild<<")";
+            	auto meanbuild = stopbb-startbb;//std::chrono::duration_cast<std::chrono::microseconds>(stopbb - startbb).count(); 
+            	std::cout<<"("<<meanbuild<<")";
 
         	double meanDuration = 0;
 
