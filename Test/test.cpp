@@ -3,12 +3,13 @@
 #include <string>
 #include <vector>
 #include <omp.h>
+#include <eigen3/Eigen/Dense>
 
 using namespace std;
-
+using Eigen::MatrixXf;
 //#define _PARALLEL
 
-int _n = 1000;
+int _n = 2000;
 
 std::vector<double> RandomDirection(int max){ // generates a random std::vector in [[-max, max ]]^n
     std::vector<double> x(_n,0.0);
@@ -84,6 +85,7 @@ double** ArrayPr(double **A, double **B){
 }
 
 int main(){
+    /*
     double **A = new double*[_n];
     double **B = new double*[_n];
     std::vector<std::vector<double>> C(_n,std::vector<double>(_n,0.0)), D(_n,std::vector<double>(_n,0.0));
@@ -97,9 +99,10 @@ int main(){
     for(int i = 0; i<_n; i++){
         C[i] = RandomDirection(100000);
         D[i] = RandomDirection(100000);
-    }
+    }*/
+    MatrixXf E = MatrixXf::Random(_n,_n), F = MatrixXf::Random(_n,_n);
     std::cout<<"debut du produit (vecteurs)\n";
-    
+    /*
     auto startMat = omp_get_wtime();
     auto res1 = MatrixPr(C,D);
     auto stopMat = omp_get_wtime();
@@ -109,12 +112,25 @@ int main(){
     auto startArr = omp_get_wtime();
     auto res2 =ArrayPr(A,B);
     auto stopArr = omp_get_wtime();
+    */
+    std::cout<<"debut du produit (Eigen)\n";
 
-    auto timeMat = stopMat-startMat, timeArr = stopArr-startArr;
-    std::cout<<"Duree de multiplication vecteurs : "<<timeMat<<"\n";
-    std::cout<<"Duree de multiplication tableaux : "<<timeArr<<"\n";
-    std::cout<<res1[27][265]<<"---"<<res1[835][492]<<"\n";
-    std::cout<<res2[27][265]<<"---"<<res2[835][492]<<"\n";
+    auto startEigen = omp_get_wtime();
+    auto res3 = E*F;
+    auto stopEigen = omp_get_wtime();
+
+    //auto timeMat = stopMat-startMat, timeArr = stopArr-startArr;
+    auto timeEigen = stopEigen-startEigen;
+    //std::cout<<"Duree de multiplication vecteurs : "<<timeMat<<"\n";
+    //std::cout<<"Duree de multiplication tableaux : "<<timeArr<<"\n";
+    std::cout<<"Duree de multiplication Eigen : "<<timeEigen<<"\n";
+
+    //std::cout<<res1[27][265]<<"---"<<res1[835][492]<<"\n";
+    //std::cout<<res2[27][265]<<"---"<<res2[835][492]<<"\n";
+    std::cout<<res3(27,265)<<"---"<<res3(835,492)<<"\n";
+    std::cout<<res3(28,266)<<"---"<<res3(836,493)<<"\n";
+
+    //std::cout<<res3;
 
 
 
