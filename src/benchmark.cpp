@@ -179,50 +179,49 @@ int main (int argc, char **argv)
 {
 
     int DIM_MIN=4; 
-    int PB_NUM_MIN=15; 
+    int PB_NUM_MIN=1; 
     int PB_SEED_MIN=0; 
     int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
     
     int DIM_MAX=33; 
-    int PB_NUM_MAX=16; 
+    int PB_NUM_MAX=24; 
     int PB_SEED_MAX=1; 
-    int POLL_STRATEGY_MAX=2;
-    int NB_2N_BLOCK_MAX=33;
+    int POLL_STRATEGY_MAX=5;
+    int NB_2N_BLOCK_MAX=2;
 
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
 
         for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
 
             for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices (with householder) of each problem
-		std::cout<<"building the blackbox\n";
-		auto start = omp_get_wtime();
-		auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
-		auto stop = omp_get_wtime();
-		std::cout<<"done in "<<stop-start<<" s\n\n";
+		    std::cout<<"building the blackbox\n";
+		    auto start = omp_get_wtime();
+		    auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
+		    auto stop = omp_get_wtime();
+		    std::cout<<"done in "<<stop-start<<" s\n\n";
                 for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
 
                     if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
                         NOMAD::Point x0((size_t)dim, -3);
-			std::cout<<"Optimization : dimenson = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
+			            std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
                         auto start = omp_get_wtime();
-			optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1, x0);
-			auto stop = omp_get_wtime();
-			std::cout<<"done in "<<stop-start<<" s\n\n"; 
+			            optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1, x0);
+			            auto stop = omp_get_wtime();
+			            std::cout<<"done in "<<stop-start<<" s\n\n"; 
                     }
                     else
                     {
                         for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block+=3){ //we increase the number of 2n blocks to see the effect on the optimization
                             NOMAD::Point x0((size_t)dim, -3);
-			    std::cout<<"Optimization : dimenson = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
+			                std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
                             auto start = omp_get_wtime();
-			    optimize(dim, pb_num, pb_seed,blackbox, poll_strategy, nb_2n_block, x0);
+			                optimize(dim, pb_num, pb_seed,blackbox, poll_strategy, nb_2n_block, x0);
                             auto stop = omp_get_wtime();
-			    std::cout<<"done in "<<stop-start<<" s\n\n";
-			}
+			                std::cout<<"done in "<<stop-start<<" s\n\n";
+			            }
                     }
-
 
                 }
             }

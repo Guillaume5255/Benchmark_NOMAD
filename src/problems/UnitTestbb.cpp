@@ -53,9 +53,9 @@ int main(){
     int nbMaxEval = 10;
     for(int pbNum = 1; pbNum< 25; pbNum++){
     	std::cout<< "exec. time for pb "<<pbNum<<"\t:\t";
-    	for(n = 2; n<1025; n = 2*n){
+    	for(n = 16384; n<17000; n = 2*n){
             	auto startbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
-        	Blackbox bb(n, pbNum, seed);
+        	    Blackbox bb(n, pbNum, seed);
             	auto stopbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
             
             	auto meanbuild = stopbb-startbb;//std::chrono::duration_cast<std::chrono::microseconds>(stopbb - startbb).count(); 

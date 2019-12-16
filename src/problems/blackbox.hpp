@@ -10,7 +10,7 @@
 
 //#define _USE_MATH_DEFINES
 
-//#define _PARALLEL
+//#define _PARALLEL2
 
 
 using namespace std;
@@ -33,29 +33,29 @@ public:
     std::vector<std::vector<double>> _Q,_R, //rotation matrix : randomly generated at the blackbox built 
                                     C, Y;
     std::vector<double> _xopt, //value for optimal solution (when defined in the problem)
-                        _ones, w;
+                        _ones, w, 
+                        _theta, _phi; //random rotation angles needed in RotationQ,R
     
-    //helper methodes
-    std::vector<std::vector<double>> MatrixProduct(std::vector<std::vector<double>> A, std::vector<std::vector<double>> B) ;
-    std::vector<std::vector<double>> Householder(std::vector<double> direction) ;                           //  Given a  normalized direction, returns the computation of the associated householder matrix
-    
-    std::vector<double> LinearApplication(std::vector<std::vector<double>> M, std::vector<double> x );          //  Given a matrix M and a std::vector x, computes the product Mx
-    std::vector<double> ExternalProduct(double y,std::vector<double> x);                              //  a.(x,y) = (ax,ay)
+
+    void ExternalProduct(double y,std::vector<double>& x);                              //  a.(x,y) = (ax,ay)
     std::vector<double> vectorProduct( std::vector<double> x ,std::vector<double> y);                      //  Product term by term : std::vectorProduct((a,b),(c,d)) = (ab,cd)
     std::vector<double> RandomDirection(int max);                                                //  Generates a random std::vector in [[-max, max ]]^n (integer component)
     std::vector<double> vectorSum(std::vector<double> x ,std::vector<double> y);                          //  Inner sum of a std::vectorial space
     std::vector<double> RandomOnesvector();                                                      //  Generates a random std::vector in {-1,1}^n
-    std::vector<double> Lambda();                                                                //  Diagonal matrix seen as a std::vector
+    void Lambda(std::vector<double>& x);                                                                //  Diagonal matrix seen as a std::vector
     std::vector<double> Lambda(double a);
-    std::vector<double> Tasy(std::vector<double> x);                                                  //  Symetry breaker
-    std::vector<double> Tosz(std::vector<double> x);                                                  //  The input std::vector can be of any size
-    
+    void Tasy(std::vector<double>& x);                                                  //  Symetry breaker
+    void Tosz(std::vector<double>& x);                                                  //  The input std::vector can be of any size
+    void RotationQ(std::vector<double>& x);
+    void RotationR(std::vector<double>& x);
+
     double ScalarProduct( std::vector<double> x ,std::vector<double> y);                              //  Cannonical scalar product
     double Norm(std::vector<double> x);                                                          //  Euclidian norm
     double Fpen(std::vector<double> x);                                                          //  Penalty to the objectif function
 
     double blackbox(std::vector<double> x);                                                      //  Code for the blackboxes (f calls blackbox after checking that the input is of the good size)
     
+    void SetUpAngles();
     void SetUpRandomValue(int hi);
     void DisplayTheoricalOptimal();
     void Normalize(std::vector<std::vector<double>> &M);

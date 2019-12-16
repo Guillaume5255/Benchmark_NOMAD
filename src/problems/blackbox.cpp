@@ -4,32 +4,15 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
     srand (bseed);
     _xopt = std::vector<double>(_n,0.0);
     _ones = RandomOnesvector();
-    std::vector<double> u = RandomDirection(1000); // we compute 3 random directions in the box [[-1000,1000]]
-    std::vector<double> v = RandomDirection(1000);
-    std::vector<double> t = RandomDirection(1000);
+    SetUpAngles();
 
-    double n_U = Norm(u); // we compute their norms 
-    double n_V = Norm(v);
-    double n_T = Norm(t);
-    
-    // with those 3 directions, we generate 3 householder matrix (let's say A, B and C) of determinant -1
-    std::vector<std::vector<double>> A = Householder(ExternalProduct(1/n_U,u));
-    std::vector<std::vector<double>> B = Householder(ExternalProduct(1/n_V,v));
-    std::vector<std::vector<double>> C = Householder(ExternalProduct(1/n_T,t));
-
-    Normalize(A);
-    Normalize(B);
-    Normalize(C);
-
-    //and we compute the product Q=AB and R=AC that are rotation matrix (det(Q) = det(AB) =det(A)det(B) = -1*-1=1)
-    _Q = MatrixProduct(A,C); 
-    _R = MatrixProduct(B,C);
     switch (funcNum) {
 
         case 3: _alpha = 10;    
                 _beta = 0.2; 
                 break;
-        case 5: _xopt = ExternalProduct(5.0,_ones);
+        case 5: _xopt = _ones;
+                ExternalProduct(5.0,_xopt);
                 break;
 
         case 6: _alpha = 10;
@@ -59,6 +42,7 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
                 break;
 
         case 20: _alpha = 10;
+                _xopt = std::vector<double>(_n,4.2096874633);
                 break;
         case 21: _hi = 101;
                 SetUpRandomValue(_hi);
@@ -87,7 +71,6 @@ void Blackbox::SetUpRandomValue(int hi){ // only used when f21 and f22 are calle
     w = std::vector<double>(hi,10.0);
     Y = std::vector<std::vector<double>>(hi);
     C = std::vector<std::vector<double>>(hi);
-
     for(int i = 0; i<hi; i++){
         if (i == 0)
             Y[i] = RandomDirection(4);
@@ -95,50 +78,20 @@ void Blackbox::SetUpRandomValue(int hi){ // only used when f21 and f22 are calle
             w[i] = 1.1+8*(i-1)/hi;
             Y[i] = RandomDirection(5);
         }
-        C[i] = ExternalProduct(1.0/pow(a[i],0.25),Lambda(a[i]));
+        C[i] = Lambda(a[i]);
+        ExternalProduct(1.0/pow(a[i],0.25),C[i]);
         random_shuffle(C[i].begin(), C[i].end());
     }
 }
 
-std::vector<double> Blackbox::LinearApplication(std::vector<std::vector<double>> M, std::vector<double> x ){ // given a matrix M and a std::vector x, computes the product Mx
-//M[i] represnts a line of M
-    std::vector<double> y(_n, 0.0);
-#ifdef _PARALLEL
-    #pragma omp parallel for
-#endif
-    for(int i = 0; i<_n ;i++){
-        double yi = 0;
-        //#pragma omp parallel for reduction(+ : yi) schedule(auto)
-    	for(int j = 0; j<_n; j++)
-            yi += M[i][j]*x[j];
-#ifdef _PARALLEL
-        #pragma omp critical
-#endif
-        y[i]=yi;
+void Blackbox::SetUpAngles(){
+    int nbOfAngles = _n%2==0 ? _n/2 : (_n-1)/2;
+    _theta = std::vector<double>(nbOfAngles);
+    _phi = std::vector<double>(nbOfAngles);
+    for(int i = 0; i<nbOfAngles; i++){
+        _theta[i] = ((double)rand()/(double)RAND_MAX)*2*M_PI;
+        _phi[i] = ((double)rand()/(double)RAND_MAX)*2*M_PI;
     }
-    return y;
-}
-
-std::vector<std::vector<double>> Blackbox::MatrixProduct(std::vector<std::vector<double>> A, std::vector<std::vector<double>> B){ // given 2 square matrix A and B, returns the product AB
-
-    std::vector<std::vector<double>> C(_n,std::vector<double>(_n)); //allocating the space for the output 
-#ifdef _PARALLEL
-	#pragma omp parallel for collapse(2) // shared(C) //schedule(guided,1024)
-#endif
-    for(int i = 0; i<_n; i++){
-    	for(int j = 0; j<_n; j++){
-    		double cij = 0;
-            //#pragma omp parallel for reduction(+ : cij) 
-    		for(int k = 0; k<_n; k++)
-    			cij += A[i][k]*B[k][j];
-#ifdef _PARALLEL
-            #pragma omp critical
-#endif
-    		C[i][j] = cij;
-    	}
-    }
-
-    return C;
 }
 
 std::vector<double> Blackbox::RandomDirection(int max){ // generates a random std::vector in [[-max, max ]]^n
@@ -164,34 +117,39 @@ std::vector<double> Blackbox::RandomOnesvector(){ // generates a random std::vec
     return x;
 }
 
-std::vector<std::vector<double>> Blackbox::Householder(std::vector<double> direction){ //given a  normalized direction, returns the computation of the associated householder matrix
-    std::vector<std::vector<double>> H(_n, std::vector<double>(_n));
-#ifdef _PARALLEL
-    #pragma omp parallel for
-#endif
-    for(int i = 0; i<_n; i++){
-        H[i][i] = 1-2*direction[i]*direction[i];
-        for(int j = i+1; j<_n-1 ;j++){
-            double val = -2*direction[i]*direction[j]; 
-            H[i][j] = val;
-            H[j][i] = val;
+void Blackbox::RotationQ(std::vector<double>& x){
+    if (_n%2 == 0){
+        for(int i = 0; i<(_n/2); i++){
+            x[2*i] = x[2*i]*cos(_theta[i])-x[2*i+1]*sin(_theta[i]);
+            x[2*i+1] = x[2*i]*sin(_theta[i])+x[2*i+1]*cos(_theta[i]);
         }
     }
-    return H;
+    else{
+        for(int i = 0; i<((_n-1)/2); i++){
+            x[2*i] = x[2*i]*cos(_theta[i])-x[2*i+1]*sin(_theta[i]);
+            x[2*i+1] = x[2*i]*sin(_theta[i])+x[2*i+1]*cos(_theta[i]);
+        }
+    }
 }
 
-void Blackbox::Normalize(std::vector<std::vector<double>> &M){
-    for(int i = 0; i<_n ; i++)
-        M[i] = ExternalProduct(Norm(M[i]),M[i]);
-
+void Blackbox::RotationR(std::vector<double>& x){
+    if (_n%2 == 0){
+        for(int i = 0; i<(_n/2); i++){
+            x[2*i] = x[2*i]*cos(_phi[i])-x[2*i+1]*sin(_phi[i]);
+            x[2*i+1] = x[2*i]*sin(_phi[i])+x[2*i+1]*cos(_phi[i]);
+        }
+    }
+    else{
+        for(int i = 0; i<((_n-1)/2); i++){
+            x[2*i] = x[2*i]*cos(_phi[i])-x[2*i+1]*sin(_phi[i]);
+            x[2*i+1] = x[2*i]*sin(_phi[i])+x[2*i+1]*cos(_phi[i]);
+        }
+    }
 }
 
-std::vector<double> Blackbox::ExternalProduct(double y,std::vector<double> x){ // a.(x,y) = (ax,ay) 
-    std::vector<double> z(_n);
+void Blackbox::ExternalProduct(double y,std::vector<double>& x){ // a.(x,y) = (ax,ay) 
     for(int i=0; i<_n; i++)
-        z[i]=x[i]*y;
-
-    return z;
+        x[i]=x[i]*y;
 }
 
 double Blackbox::ScalarProduct(std::vector<double> x ,std::vector<double> y){ // cannonical scalar product
@@ -228,14 +186,13 @@ double Blackbox::Norm(std::vector<double> x){ // euclidian norm
     return sqrt(norm);
 }
 
-std::vector<double> Blackbox::Lambda(){ // diagonal matrix seen as a std::vector 
-    std::vector<double> lambda(_n);
+void Blackbox::Lambda(std::vector<double>& x){ // diagonal matrix seen as a std::vector 
     double exponent = 0;
     for(int i=0; i<_n; i++){
         exponent=0.5*float(i-1)/float(_n-1);
-        lambda[i] = pow (_alpha, exponent);
+        x[i] =x[i]*pow (_alpha, exponent);
     }
-    return lambda;
+
 }
 
 std::vector<double> Blackbox::Lambda(double a){ // diagonal matrix seen as a std::vector 
@@ -258,36 +215,27 @@ double Blackbox::Fpen(std::vector<double> x){ //penalty
     return fpen;
 }
 
-std::vector<double> Blackbox::Tasy(std::vector<double> x){ //symetry breaker 
-    std::vector<double> tasy(_n);
-    double exponent, value;
+void Blackbox::Tasy(std::vector<double>& x){ //symetry breaker 
+    double exponent;
 #ifdef _PARALLEL
     #pragma omp parallel for private(exponent, value) shared(tasy)
 #endif
     for(int i=0; i<_n; i++){
         if(x[i]>0){
             exponent=1+_beta*double(i-1)/double(_n-1)*sqrt(x[i]);
-            value=pow (x[i], exponent);
+            x[i]=pow (x[i], exponent);
         }
-        else
-            value=x[i];
-#ifdef _PARALLEL
-        #pragma omp critical
-#endif
-        tasy[i]=value;
     }
-    return tasy;
 }
 
-std::vector<double> Blackbox::Tosz(std::vector<double> x){ // the input std::vector can be of any size
+void Blackbox::Tosz(std::vector<double>& x){ // the input std::vector can be of any size
     int taille = x.size();
-    std::vector<double> tosz(taille);
     double xhat;
     double signedex=0.0;
     double c1=0;
     double c2=0;
 #ifdef _PARALLEL
-    #pragma omp parallel for shared(tosz) private(xhat, c1, c2, signedex) 
+    #pragma omp parallel for private(xhat, c1, c2, signedex) 
 #endif
     for(int i=0; i<taille; i++){
             
@@ -314,9 +262,8 @@ std::vector<double> Blackbox::Tosz(std::vector<double> x){ // the input std::vec
 #ifdef _PARALLEL
         #pragma omp critical
 #endif
-        tosz[i]=signedex*exp(xhat+0.049*(sin(c1*xhat)+sin(c2*xhat)));
+        x[i]=signedex*exp(xhat+0.049*(sin(c1*xhat)+sin(c2*xhat)));
     }
-    return tosz;
 }
 
 void Blackbox::DisplayTheoricalOptimal(){
@@ -340,12 +287,13 @@ double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good
 }
 
 double Blackbox::p1(std::vector<double> x){
-    return Norm(vectorSum(x,ExternalProduct(-1.0,_xopt))) + _fopt;
+    return Norm(vectorSum(x,_xopt)) + _fopt;
 
 }
 
 double Blackbox::p2(std::vector<double> x){
-    std::vector<double> z = Tosz(vectorSum(x,ExternalProduct(-1.0,_xopt)));
+    std::vector<double> z = vectorSum(x,_xopt);
+    Tosz(z);
     double sum = 0;
     for(int i = 0; i<_n; i++){
         sum += pow(10, 6*i/(_n-1))*z[i]*z[i];
@@ -354,7 +302,10 @@ double Blackbox::p2(std::vector<double> x){
 }
 
 double Blackbox::p3(std::vector<double> x){
-    std::vector<double> z = vectorProduct(Lambda(),Tasy(Tosz(vectorSum(x,ExternalProduct(-1.0,_xopt)))));
+    std::vector<double> z = vectorSum(x,_xopt);
+    Tosz(z);
+    Tasy(z);
+    Lambda(z);
     double sum = 0;
     for(int i = 0; i<_n; i++){
         sum += (double)cos(2*M_PI*z[i]);
@@ -370,7 +321,9 @@ double Blackbox::p4(std::vector<double> x){
         else 
             s[i] = 10*pow(10, 0.5*i/(_n-1));
     }
-    std::vector<double> z = vectorProduct(s,Tosz(vectorSum(x, ExternalProduct(-1.0,_xopt))));
+    std::vector<double> z = vectorSum(x, _xopt);
+    Tosz(z);
+    z = vectorProduct(s,z);
     double sum = 0;
     for(int i = 0; i<_n; i++){
         sum += z[i]*z[i] - 10*cos(2*M_PI*z[i]);
@@ -397,7 +350,10 @@ double Blackbox::p5(std::vector<double> x){
 }
 
 double Blackbox::p6(std::vector<double> x){
-    std::vector<double> z = vectorProduct(LinearApplication(_Q,Lambda()),LinearApplication(_R,vectorSum(x,ExternalProduct(-1,_xopt))));
+    std::vector<double> z = vectorSum(x,_xopt);
+    RotationR(z);
+    Lambda(z);
+    RotationQ(z);
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -409,20 +365,24 @@ double Blackbox::p6(std::vector<double> x){
         else
             sum += pow(z[i],2);
     }
-    return pow(Tosz(std::vector<double>(1,sum))[0],0.9) + _fopt;
+    std::vector<double> tempVal(1,sum);
+    Tosz(tempVal);
+    return pow(tempVal[0],0.9) + _fopt;
 }
 
 double Blackbox::p7(std::vector<double> x){
-    std::vector<double> hatz = vectorProduct(Lambda(),LinearApplication(_R,vectorSum(x,ExternalProduct(-1.0,_xopt))));
-    std::vector<double> tildez(_n,0.0);
+    std::vector<double> hatz = vectorSum(x,_xopt);
+    RotationR(hatz);
+    Lambda(hatz);
+    std::vector<double> z(_n,0.0);
         
     for(int i = 0; i<_n; i++){
         if (abs(hatz[i])>0.5)
-            tildez[i] = floor(0.5+hatz[i]);
+            z[i] = floor(0.5+hatz[i]);
         else
-            tildez[i] = floor(0.5+10*hatz[i])/10.0;        
+            z[i] = floor(0.5+10*hatz[i])/10.0;        
     }
-    std::vector<double> z =  LinearApplication(_Q, tildez);
+    RotationQ(z);
     double sum = 0.0;
 
     for(int i = 0; i<_n; i++)
@@ -438,12 +398,10 @@ double Blackbox::p8(std::vector<double> x){
     double sum = 0;
     std::vector<double> z(_n);
     std::vector<double> I(_n,1.0);
-    double t = sqrt(_n)/8;
-
-    if (t>1)
-        z=vectorSum(ExternalProduct(t, vectorSum(x, ExternalProduct(-1.0, _xopt))),I);
-    else
-        z=vectorSum(ExternalProduct(1.0, vectorSum(x, ExternalProduct(-1.0, _xopt))),I); 
+    double t = std::max(sqrt(_n)/8,1.0);
+    x = vectorSum(x, _xopt);
+    ExternalProduct(t, x);
+    z=vectorSum(x,I);
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
@@ -458,11 +416,11 @@ double Blackbox::p9(std::vector<double> x){
     double sum = 0;
     std::vector<double> z(_n);
     std::vector<double> O5(_n,0.5);
-    double t = sqrt(_n)/8;
-    if (t>1)
-        z=vectorSum(ExternalProduct(t,LinearApplication(_R,x)),O5);
-    else
-        z=vectorSum(LinearApplication(_R,x),O5); 
+    double t = std::max(sqrt(_n)/8,1.0);
+    RotationR(x);
+    ExternalProduct(t,x);
+    z=vectorSum(x,O5);
+
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
@@ -474,7 +432,9 @@ double Blackbox::p9(std::vector<double> x){
 }
 
 double Blackbox::p10(std::vector<double> x){
-    std::vector<double> z = Tosz(LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt))));
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Tosz(z);
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -487,7 +447,9 @@ double Blackbox::p10(std::vector<double> x){
 }
 
 double Blackbox::p11(std::vector<double> x){
-    std::vector<double> z = Tosz(LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt))));
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Tosz(z);
     double sum = pow(10,6)*z[0]*z[0];
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -499,7 +461,10 @@ double Blackbox::p11(std::vector<double> x){
 }
 
 double Blackbox::p12(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_R,Tasy(LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt)))));
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Tasy(z);
+    RotationR(z);
     double sum = z[0]*z[0];
     for(int i =1; i<_n; i++){
         sum += pow(10,6)*z[i]*z[i];
@@ -508,7 +473,11 @@ double Blackbox::p12(std::vector<double> x){
 }
 
 double Blackbox::p13(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_Q,vectorProduct(Lambda(),LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt)))));
+
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Lambda(z);
+    RotationQ(z);
     double sum = 0.0;
     for(int i =1; i<_n; i++){
         sum += z[i]*z[i];
@@ -518,7 +487,8 @@ double Blackbox::p13(std::vector<double> x){
 
 double Blackbox::p14(std::vector<double> x){
     double sum = 0;
-    std::vector<double> z = LinearApplication(_R,vectorSum(x,ExternalProduct(-1.0,_xopt))); //z = R(x-xopt)
+    std::vector<double> z = vectorSum(x,_xopt);
+    RotationR(z); //z = R(x-xopt)
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
@@ -530,12 +500,13 @@ double Blackbox::p14(std::vector<double> x){
 }
 
 double Blackbox::p15(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt)));
-    z = Tosz(z);
-    z = Tasy(z);
-    z = LinearApplication(_Q,z);
-    z = vectorProduct(Lambda(), z);
-    z = LinearApplication(_R, z);
+    std::vector<double> z = vectorSum(x,_xopt);
+    RotationR(z);
+    Tosz(z);
+    Tasy(z);
+    RotationQ(z);
+    Lambda(z);
+    RotationR(z);
     double sum = 0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -548,14 +519,15 @@ double Blackbox::p15(std::vector<double> x){
 }
 
 double Blackbox::p16(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt)));
-    z = Tosz(z);
-    z = LinearApplication(_Q,z);
-    z = vectorProduct(Lambda(), z);
-    z = LinearApplication(_R, z);
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Tosz(z);
+    RotationQ(z);
+    Lambda(z);
+    RotationR(z);
     // define f0 in constructor --------------------------------------------------
     double sum = 0;
-#ifdef _PARALLEL
+#ifdef _PARALLEL2
     #pragma omp parallel for reduction(+:sum)
 #endif
     for(int i = 0; i<_n; i++){
@@ -571,7 +543,12 @@ double Blackbox::p16(std::vector<double> x){
 
 double Blackbox::p17(std::vector<double> x){ // Only the value for Lambda is changing between p17 and p18
     
-    std::vector<double> z = vectorProduct(Lambda(),LinearApplication(_Q,Tasy(LinearApplication(_R,vectorSum(x,ExternalProduct(-1.0,_xopt)))))); //Lambda*Q*Tasy(R*(x-xopt))
+    std::vector<double> z = vectorSum(x,_xopt);
+    RotationR(z);
+    Tasy(z);
+    RotationQ(z);
+
+    Lambda(z); //Lambda*Q*Tasy(R*(x-xopt))
     double sum = 0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+ : sum)
@@ -586,11 +563,11 @@ double Blackbox::p17(std::vector<double> x){ // Only the value for Lambda is cha
 }
 
 double Blackbox::p19(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_R,x);
+    RotationR(x);
     double v = sqrt(_n)/double(8);
     if(v<1.0)
         v=1.0;
-    z[0] += v + 0.5;
+    x[0] += v + 0.5;
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -598,28 +575,30 @@ double Blackbox::p19(std::vector<double> x){
     for(int i = 1; i<_n; i++){
         double s = 0.0;
         #pragma omp atomic
-            z[i] +=  v + 0.5;
-        s = 100*pow(z[i-1]*z[i-1]-z[i],2) + pow(z[i-1]-1,2);
+            x[i] +=  v + 0.5;
+        s = 100*pow(x[i-1]*x[i-1]-x[i],2) + pow(x[i-1]-1,2);
         sum += s/4000.0-cos(s);
     }
     return 10.0*sum/(double(_n)-1.0) + 10.0 + _fopt;
 }
 
 double Blackbox::p20(std::vector<double> x){
-    std::vector<double> hatx = ExternalProduct(2.0,vectorProduct(_ones, x));
+    //the paper is confusing about this function, for original definition, see https://www.sfu.ca/~ssurjano/schwef.html
+    //here, _xopt is equal to 2*|xopt| so when display theorical optimal, this is xopt that is displayed and not _xopt
+    std::vector<double> hatx = vectorProduct(_ones, x);
+    ExternalProduct(2.0,hatx);
     std::vector<double> hatz(_n,0.0);
-    hatz[0] = hatx[1];
+    hatz[0] = hatx[0];
     for(int i = 1; i<_n; i++){
-        hatz[i]=hatx[i] +0.25*(hatx[i-1]-2*abs(_xopt[i-1]));
+        hatz[i]=hatx[i] +0.25*(hatx[i-1]-_xopt[i-1]);
     }
-    std::vector<double> absxopt = _xopt; // TODO : set up xopt in constructor
     for( int i = 0; i<_n;i++){
-        if (absxopt[i]<0.0)
-            absxopt[i] = -absxopt[i];
-    } 
-    std::vector<double> z = vectorProduct(Lambda(), vectorSum(hatz,ExternalProduct(2.0, absxopt)));
-    z = vectorSum(z, ExternalProduct(2.0, absxopt));
-    z = ExternalProduct(100.0,z);
+        hatz[i] = hatz[i] -_xopt[i];
+    }
+    Lambda(hatz);
+    std::vector<double> z = vectorSum(hatz,_xopt);
+    ExternalProduct(100.0,z);
+
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
@@ -627,38 +606,46 @@ double Blackbox::p20(std::vector<double> x){
     for(int i = 0;i<_n; i++){
         sum += z[i]*sin(sqrt(abs(z[i])));
     }
-    return (-1.0/(100.0*double(_n)))*sum + 4.189828872724339 + 100*Fpen(ExternalProduct(1.0/100.0,z)) +_fopt;
+    ExternalProduct(1.0/100.0,z);
+    return (-1.0/(100.0*double(_n)))*sum + 4.189828872724339 + 100*Fpen(z) +_fopt;
 }
 
 double Blackbox::p21(std::vector<double> x){ //only the fixed values _hi are changing between 21 and 22
     // all the values of y, c, and alpha must be set in the constructor otherwise they will be set at each evaluation 
     double val=0.0;
-#ifdef _PARALLEL
+#ifdef _PARALLEL2
     #pragma omp parallel for reduction (std::max : val)
 #endif
     for(int i = 0; i< _hi; i++){
-        std::vector<double> diff = LinearApplication(_R,vectorSum(x,Y[i])),
-                            quad = vectorProduct(C[i],diff);  // the minus sign is already in the std::vector y
+        std::vector<double> diff = vectorSum(x,Y[i]);
+        RotationR(diff);
+        std::vector<double> quad = vectorProduct(C[i],diff);  // the minus sign is already in the std::vector y
         double expo = w[i]*exp(-ScalarProduct(diff,quad)/(2*double(_n)));
         val = std::max(expo,val);
     }
     val=10.0-val;
     std::vector<double> obj(1,val);
-    obj = Tosz(obj);
+    Tosz(obj);
     return pow(obj[0],2)+Fpen(x)+_fopt;
 }
 double Blackbox::p23(std::vector<double> x){
-    std::vector<double> z = LinearApplication(_R, vectorSum(x, ExternalProduct(-1.0,_xopt)));
-    z = vectorProduct(Lambda(), z);
-    z = LinearApplication(_Q, z);
+    std::vector<double> z = vectorSum(x, _xopt);
+    RotationR(z);
+    Lambda(z);
+    RotationQ(z);
     double prod = 1.0;
-#ifdef _PARALLEL
+#ifdef _PARALLEL2
     #pragma omp parallel for reduction(* : prod)
 #endif
     for(int i = 0; i<_n; i++){
         double sum = 0.0;
         for(int j = 1; j<33; j++){
-            sum += abs(pow(2,j)*z[i]-floor(pow(2,j)*z[i]))/pow(2,j); 
+            double val = pow(2,j)*z[i];
+            double fracpart = val - floor(val);
+            if (fracpart > 0.5)
+                sum += abs(fracpart - 1.0)/pow(2,j);
+            else
+                sum += abs(fracpart)/pow(2,j);
         }
         sum = 1 + (i+1)*sum;
         prod = prod*pow(sum,10.0/pow(_n,1.2));
@@ -670,15 +657,16 @@ double Blackbox::p24(std::vector<double> x){
     std::vector<double> sign(_n,0.0);
     for(int i = 0; i<_n; i++){
         if (_xopt[i]<0)
-            sign[i] = -1.0;
+            sign[i] = -2.0;
         if (_xopt[i]>0)
-            sign[i] = 1.0;
+            sign[i] = 2.0;
     }
-    std::vector<double> hatx = vectorProduct(ExternalProduct(2.0,sign),x);
+    std::vector<double> hatx = vectorProduct(sign,x);
     std::vector<double> unit(_n, -2.5);
-    std::vector<double> z = LinearApplication(_R, vectorSum(hatx, unit));
-    z = vectorProduct(Lambda(), z);
-    z = LinearApplication(_Q, z);
+    std::vector<double> z = vectorSum(hatx, unit);
+    RotationR(z);
+    Lambda(z);
+    RotationQ(z);
     double s = 1-1/(2*sqrt(_n+20)-8.2);
     double u1 = -sqrt((2.5*2.5-1)/s);
     double sum1=0.0, sum2=0.0, sum3=0.0;
@@ -690,14 +678,12 @@ double Blackbox::p24(std::vector<double> x){
         sum2+= pow(hatx[i]-u1,2);
         sum3+= cos(2*M_PI*z[i]);
     }
-    if (sum1>sum2)
-        return sum2+10*(_n-sum3)+10000*Fpen(x) + _fopt;
-    else
-        return sum1+10*(_n-sum3)+10000*Fpen(x) + _fopt;
+    return std::min(sum1,sum2)+10*(_n-sum3)+10000*Fpen(x) + _fopt;
+    
 }
 
 
-double Blackbox::blackbox(std::vector<double> x) { //raw computation
+double Blackbox::blackbox(std::vector<double> x) {
     switch (funcNum)
     {
     case 1:
