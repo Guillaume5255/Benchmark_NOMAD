@@ -5,6 +5,8 @@
 
 #include "problems/blackbox.hpp"
 
+#define SLURM_VERSION
+
 // Link the evaluator of NOMAD with the blackbox
 class My_Evaluator : public NOMAD::Evaluator
 {
@@ -72,7 +74,7 @@ void initParams(NOMAD::AllParameters &p, size_t n )
     p.getRunParams()->setAttributeValue("NM_SEARCH",false);
     p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
     p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-    p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11);
+    p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",64);
 
     p.getRunParams()->setAttributeValue("POLL_CENTER_USE_CACHE",false);
 
@@ -167,7 +169,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
     {
         std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
     }
-    
+
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
 
@@ -177,19 +179,36 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
 int main (int argc, char **argv)
 {
+	bool useArgs = false;
+#ifdef SLURM_VERSION
+	useArgs = true;
+#endif
 
-    int DIM_MIN=4; 
-    int PB_NUM_MIN=1; 
+    int DIM_MIN=256;
+    int PB_NUM_MIN=16; 
     int PB_SEED_MIN=0; 
     int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
-    
-    int DIM_MAX=33; 
-    int PB_NUM_MAX=24; 
-    int PB_SEED_MAX=1; 
-    int POLL_STRATEGY_MAX=5;
-    int NB_2N_BLOCK_MAX=2;
 
+    int DIM_MAX=257; 
+    int PB_NUM_MAX=17; 
+    int PB_SEED_MAX=1; 
+    int POLL_STRATEGY_MAX=2;
+    int NB_2N_BLOCK_MAX=1;
+
+    if (useArgs){
+	DIM_MIN = atoi(argv[1]);
+	PB_NUM_MIN = atoi(argv[2]);
+   	PB_SEED_MIN = atoi(argv[3]);
+    	POLL_STRATEGY_MIN = atoi(argv[4]);
+    	NB_2N_BLOCK_MIN = atoi(argv[5]);
+
+    	DIM_MAX = DIM_MIN+1;
+   	PB_NUM_MAX = PB_NUM_MIN+1;
+    	PB_SEED_MAX = PB_SEED_MIN+1;
+    	POLL_STRATEGY_MAX = POLL_STRATEGY_MIN+1;
+    	NB_2N_BLOCK_MAX = NB_2N_BLOCK_MIN+1;
+    }
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
 
         for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
@@ -205,22 +224,22 @@ int main (int argc, char **argv)
 
                     if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
                         NOMAD::Point x0((size_t)dim, -3);
-			            std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
+			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
                         auto start = omp_get_wtime();
-			            optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1, x0);
-			            auto stop = omp_get_wtime();
-			            std::cout<<"done in "<<stop-start<<" s\n\n"; 
+			optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1, x0);
+			auto stop = omp_get_wtime();
+			std::cout<<"done in "<<stop-start<<" s\n\n"; 
                     }
                     else
                     {
                         for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block+=3){ //we increase the number of 2n blocks to see the effect on the optimization
                             NOMAD::Point x0((size_t)dim, -3);
-			                std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
+			    std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
                             auto start = omp_get_wtime();
-			                optimize(dim, pb_num, pb_seed,blackbox, poll_strategy, nb_2n_block, x0);
+			    optimize(dim, pb_num, pb_seed,blackbox, poll_strategy, nb_2n_block, x0);
                             auto stop = omp_get_wtime();
-			                std::cout<<"done in "<<stop-start<<" s\n\n";
-			            }
+			    std::cout<<"done in "<<stop-start<<" s\n\n";
+			 }
                     }
 
                 }
