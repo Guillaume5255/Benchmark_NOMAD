@@ -5,8 +5,6 @@
 
 #include "problems/blackbox.hpp"
 
-#define SLURM_VERSION
-
 // Link the evaluator of NOMAD with the blackbox
 class My_Evaluator : public NOMAD::Evaluator
 {
@@ -179,10 +177,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
 int main (int argc, char **argv)
 {
-	bool useArgs = false;
-#ifdef SLURM_VERSION
-	useArgs = true;
-#endif
+    bool useArgs = argc >1;
 
     int DIM_MIN=256;
     int PB_NUM_MIN=16; 
