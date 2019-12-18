@@ -118,7 +118,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
         params->getRunParams()->setAttributeValue("MULTI_POLL",true);
         
-        name = name + std::to_string(2*dim)+"_";
+        name = name + std::to_string(2*dim+1)+"_";
         break;
 
     case 3:
@@ -221,13 +221,13 @@ int main (int argc, char **argv)
                         NOMAD::Point x0((size_t)dim, -3);
 			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
                         auto start = omp_get_wtime();
-			optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1, x0);
+			optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
 			auto stop = omp_get_wtime();
 			std::cout<<"done in "<<stop-start<<" s\n\n"; 
                     }
                     else
                     {
-                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block+=3){ //we increase the number of 2n blocks to see the effect on the optimization
+                        for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block){ //we increase the number of 2n blocks to see the effect on the optimization
                             NOMAD::Point x0((size_t)dim, -3);
 			    std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
                             auto start = omp_get_wtime();

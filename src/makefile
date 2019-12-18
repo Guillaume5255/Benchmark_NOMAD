@@ -65,7 +65,7 @@ RUN_DIR		= ../run
 endif
 
 #$(LIB_DYNAMIC)	
-buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) benchmark.cpp buildBlackbox script
+buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) benchmark.cpp buildBlackbox
 	$(COMPILE) -o $(RUN_DIR)/$(BENCHMARKER) benchmark.cpp $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
 	
 buildBlackbox: $(PB_DIR_NAME)/blackbox.cpp $(PB_DIR_NAME)/blackbox.hpp
@@ -77,10 +77,12 @@ init:
 script:
 	cp $(BENCHMARKER_SCRIPT) $(RUN_DIR)
 	
-clean: cleanBBDir cleanRunDir cleanBenchmarker cleanScript
+clean: cleanBBDir cleanRunDir cleanBenchmarker
 
-cleanScript:
-	rm -f $(RUN_DIR)/$(BENCHMARKER_SCRIPT)
+# cleanScript
+
+#cleanScript:
+#	rm -f $(RUN_DIR)/$(BENCHMARKER_SCRIPT)
 
 cleanBBDir:
 	rm -f $(PB_DIR_NAME)/blackbox.o
