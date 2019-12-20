@@ -50,7 +50,7 @@ private:
 };
 
 // Initialization of all parameters that do not change from one poll method to another
-void initParams(NOMAD::AllParameters &p, size_t n )
+void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 {
     // parameters creation
     p.getPbParams()->setAttributeValue("DIMENSION", n);
@@ -63,7 +63,7 @@ void initParams(NOMAD::AllParameters &p, size_t n )
     // the algorithm terminates after 1000 black-box evaluations,
     // or 2000 total evaluations, including cache hits and evalutions for
     // which countEval was false.
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 2000*n); //1000
+    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",10000*2*n*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
 
     p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); 
     p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
@@ -72,7 +72,7 @@ void initParams(NOMAD::AllParameters &p, size_t n )
     p.getRunParams()->setAttributeValue("NM_SEARCH",false);
     p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
     p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-    p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",64);
+    p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",72);
 
     p.getRunParams()->setAttributeValue("POLL_CENTER_USE_CACHE",false);
 
@@ -99,7 +99,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
     // Initialize all parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
-    initParams(*params, (size_t)dim);
+    initParams(*params, (size_t)dim, nb_of_2n_block);
 
 
     auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
@@ -179,17 +179,17 @@ int main (int argc, char **argv)
 {
     bool useArgs = argc >1;
 
-    int DIM_MIN=256;
-    int PB_NUM_MIN=16; 
+    int DIM_MIN=8;
+    int PB_NUM_MIN=15; 
     int PB_SEED_MIN=0; 
     int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
 
-    int DIM_MAX=257; 
-    int PB_NUM_MAX=17; 
-    int PB_SEED_MAX=1; 
-    int POLL_STRATEGY_MAX=2;
-    int NB_2N_BLOCK_MAX=1;
+    int DIM_MAX=9; 
+    int PB_NUM_MAX=16; 
+    int PB_SEED_MAX=2; 
+    int POLL_STRATEGY_MAX=5;
+    int NB_2N_BLOCK_MAX=3;
 
     if (useArgs){
 	DIM_MIN = atoi(argv[1]);

@@ -27,7 +27,8 @@ public:
     const int _n,funcNum,bseed; // dimension, problem number and seed for the generation of random matrix
     double _alpha, _beta, 
             _fopt = 0.0,
-            _f0 = 0;
+            _f0 = 0,
+	    u0,u1,s,d; //used in problem 24
     int _hi;// needed in problems 21 and 22
 
     std::vector<std::vector<double>> _Q,_R, //rotation matrix : randomly generated at the blackbox built 
@@ -58,6 +59,7 @@ public:
     void SetUpAngles();
     void SetUpRandomValue(int hi);
     void DisplayTheoricalOptimal();
+    std::vector<double> getXopt(){return _xopt;};
     void Normalize(std::vector<std::vector<double>> &M);
 
     double p1(std::vector<double> x);

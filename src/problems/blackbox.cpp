@@ -8,8 +8,8 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 
     switch (funcNum) {
 
-        case 3: _alpha = 10;    
-                _beta = 0.2; 
+        case 3: _alpha = 10;
+                _beta = 0.2;
                 break;
         case 5: _xopt = _ones;
                 ExternalProduct(5.0,_xopt);
@@ -29,9 +29,9 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
                 _beta = 0.2;
                 break;
         case 16: _alpha = 0.01;
+		_f0=0;
                 for(int k =0; k < 12; k++){
-                    double value = cos(M_PI*pow(3,k))/pow(2,k);
-                    _f0+= value;
+                    _f0 += cos(M_PI*pow(3,k))/pow(2,k);
                 }
                 break;
         case 17: _alpha = 10;
@@ -42,20 +42,30 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
                 break;
 
         case 20: _alpha = 10;
-                _xopt = std::vector<double>(_n,4.2096874633);
+		_xopt = std::vector<double>(_n,4.2096874633);
+		//_xopt = RandomOnesvector();
+               // ExternalProduct(4.2096874633,_xopt);
                 break;
         case 21: _hi = 101;
                 SetUpRandomValue(_hi);
                 _xopt = Y[0];
+		ExternalProduct(-1.0,_xopt);
                 break;
         case 22: _hi = 21;
                 SetUpRandomValue(_hi);
                 _xopt = Y[0];
+		ExternalProduct(-1.0,_xopt);
                 break;
         case 23: _alpha = 100;
                 break;
         case 24: _alpha = 100;
-                break;
+		u0 =2.5;
+		s = 1.0-1.0/(2.0*sqrt(_n+20.0)-8.2);
+		d = 1.0;
+		u1 = -sqrt((u1*u1-d)/s);
+                _xopt = RandomOnesvector();
+		ExternalProduct(u0/2,_xopt);
+		break;
         default:
                 break;
     }
@@ -105,11 +115,10 @@ std::vector<double> Blackbox::RandomOnesvector(){ // generates a random std::vec
     std::vector<double> x(_n);
     //#pragma omp parallel for shared(x)
     for(int i = 0 ; i <_n ;i++ ){
-        
         double xi =  double(rand()%2);
         if (xi==0.0)
             xi = -1.0;
-        else 
+        else
             xi = 1.0;
         //#pragma omp critical
         x[i]=xi;
@@ -205,17 +214,17 @@ std::vector<double> Blackbox::Lambda(double a){ // diagonal matrix seen as a std
     return lambda;
 }
 
-double Blackbox::Fpen(std::vector<double> x){ //penalty 
+double Blackbox::Fpen(std::vector<double> x){ //penalty
     double fpen = 0;
     //#pragma omp parallel for reduction(+ : fpen)
     for(int i=0; i<_n; i++){
         double t = abs(x[i])-5;
-        fpen += std::max(t*t,0.0);
+        fpen += pow(std::max(t,0.0),2);
     }
     return fpen;
 }
 
-void Blackbox::Tasy(std::vector<double>& x){ //symetry breaker 
+void Blackbox::Tasy(std::vector<double>& x){ //symetry breaker
     double exponent;
 #ifdef _PARALLEL
     #pragma omp parallel for private(exponent, value) shared(tasy)
@@ -235,10 +244,9 @@ void Blackbox::Tosz(std::vector<double>& x){ // the input std::vector can be of 
     double c1=0;
     double c2=0;
 #ifdef _PARALLEL
-    #pragma omp parallel for private(xhat, c1, c2, signedex) 
+    #pragma omp parallel for private(xhat, c1, c2, signedex)
 #endif
     for(int i=0; i<taille; i++){
-            
         if(x[i]!=0.0)
             xhat = log(abs(x[i]));
         else
@@ -251,10 +259,10 @@ void Blackbox::Tosz(std::vector<double>& x){ // the input std::vector can be of 
 
         if (signedex==1.0)
         {
-            c1=10; 
+            c1=10;
             c2=7.9;
         }
-        else 
+        else
         {
             c1=5.5;
             c2=3.1;
@@ -267,12 +275,25 @@ void Blackbox::Tosz(std::vector<double>& x){ // the input std::vector can be of 
 }
 
 void Blackbox::DisplayTheoricalOptimal(){
-    for(int i = 0; i<_n; i++){
-        std::cout<<"(";
-        std::cout<<_xopt[i]<<"\t";
-        std::cout<<")";
+    std::cout<<"\n\n Problem "<<funcNum<<" :\n";
+    if(funcNum != 9 && funcNum != 19 ){
+    	std::cout<<"xopt :\n";
     }
-    
+    else{
+	std::cout<<"zopt :\n";
+    }
+    std::cout<<" (";
+    for(int i = 0; i<_n; i++){
+	if((i+1)%15 == 0)
+		std::cout<<"\n";
+        std::cout<<_xopt[i]<<"\t";
+    }
+    std::cout<<")";
+    if(funcNum ==9 || funcNum ==19)
+	std::cout<<"\n /!\\ this value is not computed directly\n";
+    if(funcNum ==20)
+	std::cout<<"\n/!\\ do not return 0 because it is a value obtained by a solver\n";
+    std::cout<<"\n f(xopt) = "<< f(_xopt)<<"\n";
 }
 
 double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good dimension 
@@ -283,7 +304,7 @@ double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good
     {
         std::cout<<"x is of dimension "<< x.size() <<"but blackbox takes "<< _n <<" input parameters";
         return -1.0;
-    } 
+    }
 }
 
 double Blackbox::p1(std::vector<double> x){
@@ -316,19 +337,21 @@ double Blackbox::p3(std::vector<double> x){
 double Blackbox::p4(std::vector<double> x){
     std::vector<double> s(_n);
     for(int i = 0; i<_n; i++){
-        if (x[i]>0) // i think there is an error in the paper
+        if (x[i]>0 && (i+1)%2 == 1) // i think there is an error in the paper, they say z[i]>0
             s[i] = 10*pow(10, 0.5*i/(_n-1));
-        else 
-            s[i] = 10*pow(10, 0.5*i/(_n-1));
+        else
+            s[i] = pow(10, 0.5*i/(_n-1));
     }
     std::vector<double> z = vectorSum(x, _xopt);
     Tosz(z);
     z = vectorProduct(s,z);
-    double sum = 0;
+    double sum1 = 0, sum2 = 0;
+
     for(int i = 0; i<_n; i++){
-        sum += z[i]*z[i] - 10*cos(2*M_PI*z[i]);
+        sum1 += cos(2*M_PI*z[i]);
+	sum2 += z[i]*z[i];
     }
-    return 10*_n+sum + 100*Fpen(x) +_fopt;
+    return 10*(_n-sum1) + sum2 + 100*Fpen(x) +_fopt;
 }
 
 double Blackbox::p5(std::vector<double> x){
@@ -338,7 +361,7 @@ double Blackbox::p5(std::vector<double> x){
     for(int i = 0; i<_n; i++){
         if (_xopt[i]>0)
             si = 5*pow(10,i/(_n-1));
-        else 
+        else
             si = -5*pow(10,i/(_n-1));
         if (_xopt[i]*x[i]<5*5)
             zi = x[i];
@@ -375,19 +398,19 @@ double Blackbox::p7(std::vector<double> x){
     RotationR(hatz);
     Lambda(hatz);
     std::vector<double> z(_n,0.0);
-        
+
     for(int i = 0; i<_n; i++){
         if (abs(hatz[i])>0.5)
             z[i] = floor(0.5+hatz[i]);
         else
-            z[i] = floor(0.5+10*hatz[i])/10.0;        
+            z[i] = floor(0.5+10*hatz[i])/10.0;
     }
     RotationQ(z);
     double sum = 0.0;
 
     for(int i = 0; i<_n; i++)
         sum += pow(10, 2*i/double(_n-1))*z[i]*z[i];
-    
+
     if(sum > abs(z[1])/10000)
         return 0.1*sum + Fpen(x) + _fopt;
     else
@@ -420,7 +443,6 @@ double Blackbox::p9(std::vector<double> x){
     RotationR(x);
     ExternalProduct(t,x);
     z=vectorSum(x,O5);
-
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
@@ -493,7 +515,7 @@ double Blackbox::p14(std::vector<double> x){
     #pragma omp parallel for reduction(+:sum)
 #endif
     for (int i =0 ; i<_n; i++){
-        double value = pow(abs(z[i]),2+4*double(i-1)/double(_n-1)); 
+        double value = pow(abs(z[i]),2+4*double(i-1)/double(_n-1));
         sum += value;
     }
     return sqrt(sum);
@@ -512,7 +534,7 @@ double Blackbox::p15(std::vector<double> x){
     #pragma omp parallel for reduction(+:sum)
 #endif
     for(int i = 0; i<_n; i++){
-        double value = cos(2*M_PI*z[i]); 
+        double value = cos(2*M_PI*z[i]);
         sum += value;
     }
     return 10*(_n-sum) + pow(Norm(z),2) + _fopt;
@@ -533,16 +555,16 @@ double Blackbox::p16(std::vector<double> x){
     for(int i = 0; i<_n; i++){
         double localSum = 0;
         for(int k = 0; k < 12 ; k++){
-            double value = cos(2*M_PI*pow(3,k)*(z[i]+0.5));
-            localSum += value;
+            localSum += cos(2*M_PI*pow(3,k)*(z[i]+0.5))/pow(2,k);
         }
         sum += localSum;
     }
-    return 10*pow(1.0/double(_n)*(sum -_f0),2) + 10.0/double(_n) * Fpen(x) + _fopt ; //it should be a cube power but with a square it ensures that all problems are bounded below by 0 
+    sum = (sum -_n*_f0)/double(_n);
+    return 10*pow(sum,2) + (10.0/double(_n)) * Fpen(x) + _fopt ; //it should be a cube power but with a square it ensures that all problems are bounded below by 0 
 }
 
 double Blackbox::p17(std::vector<double> x){ // Only the value for Lambda is changing between p17 and p18
-    
+
     std::vector<double> z = vectorSum(x,_xopt);
     RotationR(z);
     Tasy(z);
@@ -555,7 +577,7 @@ double Blackbox::p17(std::vector<double> x){ // Only the value for Lambda is cha
 #endif
     for(int i=0; i<_n-1; i++){
         double si = sqrt(z[i]*z[i]+z[i+1]*z[i+1]);
-        double value = sqrt(si)*(1+pow(sin(50*pow(si,0.2)),2)); 
+        double value = sqrt(si)*(1+pow(sin(50*pow(si,0.2)),2));
         sum += value;
     }
     sum = pow(1/float(_n-1)*sum,2) + 10*Fpen(x) + _fopt;
@@ -564,19 +586,15 @@ double Blackbox::p17(std::vector<double> x){ // Only the value for Lambda is cha
 
 double Blackbox::p19(std::vector<double> x){
     RotationR(x);
-    double v = sqrt(_n)/double(8);
-    if(v<1.0)
-        v=1.0;
-    x[0] += v + 0.5;
+    double v = std::max(sqrt(_n)/8.0,1.0);
+    ExternalProduct(v,x);
+    x = vectorSum(x,std::vector<double>(_n,0.5));
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
     for(int i = 1; i<_n; i++){
-        double s = 0.0;
-        #pragma omp atomic
-            x[i] +=  v + 0.5;
-        s = 100*pow(x[i-1]*x[i-1]-x[i],2) + pow(x[i-1]-1,2);
+        double s = 100*pow(x[i-1]*x[i-1]-x[i],2) + pow(x[i-1]-1,2);
         sum += s/4000.0-cos(s);
     }
     return 10.0*sum/(double(_n)-1.0) + 10.0 + _fopt;
@@ -584,34 +602,37 @@ double Blackbox::p19(std::vector<double> x){
 
 double Blackbox::p20(std::vector<double> x){
     //the paper is confusing about this function, for original definition, see https://www.sfu.ca/~ssurjano/schwef.html
-    //here, _xopt is equal to 2*|xopt| so when display theorical optimal, this is xopt that is displayed and not _xopt
-    std::vector<double> hatx = vectorProduct(_ones, x);
-    ExternalProduct(2.0,hatx);
-    std::vector<double> hatz(_n,0.0);
-    hatz[0] = hatx[0];
-    for(int i = 1; i<_n; i++){
-        hatz[i]=hatx[i] +0.25*(hatx[i-1]-_xopt[i-1]);
-    }
-    for( int i = 0; i<_n;i++){
-        hatz[i] = hatz[i] -_xopt[i];
-    }
-    Lambda(hatz);
-    std::vector<double> z = vectorSum(hatz,_xopt);
-    ExternalProduct(100.0,z);
+    double opt = 4.2096874633;
+    x = vectorSum(x,std::vector<double>(_n,-opt));
+//    ExternalProduct(100.0,x);
+    //ExternalProduct(2.0,x);
+//    for(int i = 0; i<_n; i++){
+//	if(_xopt[i]<0)
+//	   x[i]=-x[i];
+//    }
+/*    for(int i = 1; i<_n; i++)
+        x[i]=x[i]+ 0.25*(x[i-1]-_xopt[i-1]) - _xopt[i-1];
+
+    x[0]=x[0]-_xopt[0];
+*/
+    Lambda(x);
+    RotationR(x);
+    x = vectorSum(x,_xopt);
+    ExternalProduct(100.0,x);
 
     double sum = 0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum)
 #endif
-    for(int i = 0;i<_n; i++){
-        sum += z[i]*sin(sqrt(abs(z[i])));
-    }
-    ExternalProduct(1.0/100.0,z);
-    return (-1.0/(100.0*double(_n)))*sum + 4.189828872724339 + 100*Fpen(z) +_fopt;
+    for(int i = 0;i<_n; i++)
+        sum += x[i]*sin(sqrt(abs(x[i])));
+
+    ExternalProduct(0.01,x);
+    return -sum/(100.0*double(_n)) + 4.189828872724339 + 100*Fpen(x) +_fopt;
 }
 
 double Blackbox::p21(std::vector<double> x){ //only the fixed values _hi are changing between 21 and 22
-    // all the values of y, c, and alpha must be set in the constructor otherwise they will be set at each evaluation 
+    // all the values of y, c, and alpha must be set in the constructor otherwise they will be set at each evaluation
     double val=0.0;
 #ifdef _PARALLEL2
     #pragma omp parallel for reduction (std::max : val)
@@ -667,19 +688,16 @@ double Blackbox::p24(std::vector<double> x){
     RotationR(z);
     Lambda(z);
     RotationQ(z);
-    double s = 1-1/(2*sqrt(_n+20)-8.2);
-    double u1 = -sqrt((2.5*2.5-1)/s);
     double sum1=0.0, sum2=0.0, sum3=0.0;
 #ifdef _PARALLEL
     #pragma omp parallel for reduction(+:sum1,sum2,sum3)
 #endif
     for(int i = 0; i<_n; i++){
-        sum1+= pow(hatx[i]-2.5,2);
+        sum1+= pow(hatx[i]-u0,2);
         sum2+= pow(hatx[i]-u1,2);
         sum3+= cos(2*M_PI*z[i]);
     }
-    return std::min(sum1,sum2)+10*(_n-sum3)+10000*Fpen(x) + _fopt;
-    
+    return std::min(sum1,d*_n+s*sum2)+10*(_n-sum3)+10000*Fpen(x) + _fopt;
 }
 
 
@@ -735,7 +753,7 @@ double Blackbox::blackbox(std::vector<double> x) {
         return p16(x);
         break;
     case 17:
-        return p17(x); 
+        return p17(x);
         break;
     case 18:
         return p17(x);//only the constant values set in the constructor are changing
