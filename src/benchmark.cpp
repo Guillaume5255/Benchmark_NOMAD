@@ -10,13 +10,13 @@ class My_Evaluator : public NOMAD::Evaluator
 {
 public:
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams,const std::shared_ptr<Blackbox>& blackbox )
-        : NOMAD::Evaluator(evalParams) 
+        : NOMAD::Evaluator(evalParams)
     {
         bb = blackbox;
     }
 
     ~My_Evaluator() {}
-    
+
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double& hMax, bool &countEval) const override
     {
@@ -30,7 +30,7 @@ public:
         try
         {
             double f = bb->f(xtrue);
-            
+
             std::string bbo = to_string(f);
             x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 
@@ -58,12 +58,13 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 
     p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -5.0)); // all var. >= -5
     p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0)); // all var. <= 5
-    
+
 
     // the algorithm terminates after 1000 black-box evaluations,
     // or 2000 total evaluations, including cache hits and evalutions for
     // which countEval was false.
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",10000*2*n*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
+    int nbIter=500;
+    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",nbIter*(2*n)*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
 
     p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); 
     p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
@@ -86,7 +87,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
     p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 
-    
+
     // parameters validation
     p.checkAndComply();
 }
@@ -95,7 +96,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 // Runing with the poll strategy poll_strategy and starting point x0
 void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& blackbox,int poll_strategy, int nb_of_2n_block, NOMAD::Point x0){
     // creating the blackbox
-    //auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed); 
+    //auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
 
     // Initialize all parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
@@ -103,7 +104,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
 
     auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
-	
+
     params->getPbParams()->setAttributeValue("X0", x0);
 
     switch (poll_strategy)
@@ -117,7 +118,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
         params->getRunParams()->setAttributeValue("CLASSICAL_POLL",false); //disactivate classical poll because it is activated by default
 
         params->getRunParams()->setAttributeValue("MULTI_POLL",true);
-        
+
         name = name + std::to_string(2*dim+1)+"_";
         break;
 
@@ -126,7 +127,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
         params->getRunParams()->setAttributeValue("OIGNON_POLL",true);
         params->getRunParams()->setAttributeValue("NUMBER_OF_LAYERS",(int)(nb_of_2n_block));
-        
+
         name = name + std::to_string(nb_of_2n_block)+"_";
         break;
     case 4:
@@ -136,7 +137,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
         params->getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",nb_of_2n_block);
         params->getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(0));
         params->getRunParams()->setAttributeValue("FRAME_UB",NOMAD::Double(1));
-        
+
         name = name + std::to_string(nb_of_2n_block)+"_";
         break;
 
@@ -180,14 +181,14 @@ int main (int argc, char **argv)
     bool useArgs = argc >1;
 
     int DIM_MIN=8;
-    int PB_NUM_MIN=15; 
-    int PB_SEED_MIN=0; 
+    int PB_NUM_MIN=15;
+    int PB_SEED_MIN=0;
     int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
 
-    int DIM_MAX=9; 
-    int PB_NUM_MAX=16; 
-    int PB_SEED_MAX=2; 
+    int DIM_MAX=9;
+    int PB_NUM_MAX=16;
+    int PB_SEED_MAX=2;
     int POLL_STRATEGY_MAX=5;
     int NB_2N_BLOCK_MAX=3;
 
@@ -204,26 +205,26 @@ int main (int argc, char **argv)
     	POLL_STRATEGY_MAX = POLL_STRATEGY_MIN+1;
     	NB_2N_BLOCK_MAX = NB_2N_BLOCK_MIN+1;
     }
-    for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
+    for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable
 
         for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
 
             for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices (with householder) of each problem
-		    std::cout<<"building the blackbox\n";
-		    auto start = omp_get_wtime();
-		    auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
-		    auto stop = omp_get_wtime();
-		    std::cout<<"done in "<<stop-start<<" s\n\n";
+		std::cout<<"building the blackbox\n";
+		auto start = omp_get_wtime();
+		auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
+		auto stop = omp_get_wtime();
+		std::cout<<"done in "<<stop-start<<" s\n\n";
                 for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
 
                     if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
                         NOMAD::Point x0((size_t)dim, -3);
-			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n"; 
+			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
                         auto start = omp_get_wtime();
 			optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
 			auto stop = omp_get_wtime();
-			std::cout<<"done in "<<stop-start<<" s\n\n"; 
+			std::cout<<"done in "<<stop-start<<" s\n\n";
                     }
                     else
                     {
@@ -236,8 +237,8 @@ int main (int argc, char **argv)
 			    std::cout<<"done in "<<stop-start<<" s\n\n";
 			 }
                     }
-
                 }
+		blackbox->DisplayTheoricalOptimal();
             }
         }
     }
