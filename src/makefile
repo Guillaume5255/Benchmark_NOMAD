@@ -15,6 +15,8 @@ INCLUDE_DIR	= $(BUILD_DIR)/include
 LIB_DIR		= $(BUILD_DIR)/lib
 BIN_DIR		= $(BUILD_DIR)/bin
 EXE		= $(BIN_DIR)/benchmark.exe
+BENCHMARKER	= benchmarker.exe
+BENCHMARKER_SCRIPT = benchmarkJobs.sh
 
 UTILS_LIB_CURRENT_VERSION = 4.0.0
 EVAL_LIB_CURRENT_VERSION = 4.0.0
@@ -64,15 +66,23 @@ endif
 
 #$(LIB_DYNAMIC)	
 buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) benchmark.cpp buildBlackbox
-	$(COMPILE) -o $(RUN_DIR)/benchmarker.exe benchmark.cpp $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
+	$(COMPILE) -o $(RUN_DIR)/$(BENCHMARKER) benchmark.cpp $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
 	
 buildBlackbox: $(PB_DIR_NAME)/blackbox.cpp $(PB_DIR_NAME)/blackbox.hpp
 	$(COMPILE_BB) -o $(PB_DIR_NAME)/blackbox.o $(PB_DIR_NAME)/blackbox.cpp
 	
 init:
 	mkdir $(RUN_DIR)
+
+script:
+	cp $(BENCHMARKER_SCRIPT) $(RUN_DIR)
 	
 clean: cleanBBDir cleanRunDir cleanBenchmarker
+
+# cleanScript
+
+#cleanScript:
+#	rm -f $(RUN_DIR)/$(BENCHMARKER_SCRIPT)
 
 cleanBBDir:
 	rm -f $(PB_DIR_NAME)/blackbox.o
@@ -81,4 +91,4 @@ cleanRunDir:
 	rm -f $(RUN_DIR)/run*
 	
 cleanBenchmarker:
-	rm -f $(RUN_DIR)/benchmarker.exe
+	rm -f $(RUN_DIR)/$(BENCHMARKER)

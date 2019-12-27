@@ -20,6 +20,7 @@ int main(){
         std::string checkTest = isEqual ? "OK" : "Problem";
         
         std::cout<<"valeur de f"<< i <<" : "<< std::left<<f<<std::setw(25)<<" | "<<g<< std::setw(25) << "|"+checkTest <<"\n";   
+	bb.DisplayTheoricalOptimal();
     }
     
     std::cout<<"\n\n Vérification détermnisme sur 2 instance de la boite noire avec la meme graine aléatoire \n \n";
@@ -45,6 +46,12 @@ int main(){
         successfulValueTest = "\n There is a problem in value test\n";
     std::cout<<successfulValueTest;
 
+    std::cout<<"test on theorical optimal value";
+    for(int i = 1; i<25; i++){
+    	Blackbox bb(n,i,seed);
+	x = bb.getXopt();
+	std::cout<<"pb "<<i<<"\t f(xopt) = "<<bb.f(x)<<"\n";
+    }
         
         
 
@@ -53,9 +60,9 @@ int main(){
     int nbMaxEval = 10;
     for(int pbNum = 1; pbNum< 25; pbNum++){
     	std::cout<< "exec. time for pb "<<pbNum<<"\t:\t";
-    	for(n = 16384; n<17000; n = 2*n){
+    	for(n = 1000; n<1001; n = 2*n){
             	auto startbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
-        	    Blackbox bb(n, pbNum, seed);
+        	Blackbox bb(n, pbNum, seed);
             	auto stopbb = omp_get_wtime();//std::chrono::high_resolution_clock::now();
             
             	auto meanbuild = stopbb-startbb;//std::chrono::duration_cast<std::chrono::microseconds>(stopbb - startbb).count(); 
