@@ -74,7 +74,7 @@ void initParams(NOMAD::AllParameters &p, size_t n )
     p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
     p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11);
 
-    p.getRunParams()->setAttributeValue("POLL_CENTER_USE_CACHE",false);
+    p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",1);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ"));
@@ -154,7 +154,7 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
     // Custom evaluator creation
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams(),blackbox));
     TheMainStep->setEvaluator(std::move(ev));
-
+    std::cout<<"OK";
     try
     {
         // Algorithm creation and execution
@@ -184,11 +184,11 @@ int main (int argc, char **argv)
     int POLL_STRATEGY_MIN=1;
     int NB_2N_BLOCK_MIN=1;
     
-    int DIM_MAX=33; 
-    int PB_NUM_MAX=24; 
+    int DIM_MAX=5; 
+    int PB_NUM_MAX=15; 
     int PB_SEED_MAX=1; 
     int POLL_STRATEGY_MAX=5;
-    int NB_2N_BLOCK_MAX=2;
+    int NB_2N_BLOCK_MAX=5;
 
     for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable 
 
