@@ -2,74 +2,110 @@
 
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), bseed(instance){
 	srand (bseed);
-	_xopt = std::vector<double>(_n,0.0);
+	_xopt = RandomDirection(5.0); //std::vector<double>(_n,0.0);
 	_ones = RandomOnesvector();
 	SetUpAngles();
 
 	switch (funcNum) {
+		case 3:
+			_alpha = 10;
+			_beta = 0.2;
+			break;
+		
+		case 5:
+			_xopt = _ones;
+			ExternalProduct(5.0,_xopt);
+			break;
 
-		case 3: _alpha = 10;
-				_beta = 0.2;
-				break;
-		case 5: _xopt = _ones;
-				ExternalProduct(5.0,_xopt);
-				break;
+		case 6:
+			_alpha = 10;
+			break;
+		
+		case 7:
+			_alpha = 10;
+			break;
 
-		case 6: _alpha = 10;
-				break;
-		case 7: _alpha = 10;
-				break;
+		case 12:
+			_beta = 0.5;
+			break;
+		
+		case 13:
+			_alpha = 10;
+			break;
 
-		case 12: _beta = 0.5;
-				break;
-		case 13: _alpha = 10;
-				break;
+		case 15:
+			_alpha = 10;
+			_beta = 0.2;
+			break;
+		
+		case 16:
+			_alpha = 0.01;
+			_f0=0;
+			for(int k =0; k < 12; k++)
+				_f0 += cos(M_PI*pow(3,k))/pow(2,k);
+			break;
 
-		case 15: _alpha = 10;
-				_beta = 0.2;
-				break;
-		case 16: _alpha = 0.01;
-		_f0=0;
-				for(int k =0; k < 12; k++){
-					_f0 += cos(M_PI*pow(3,k))/pow(2,k);
-				}
-				break;
-		case 17: _alpha = 10;
-				_beta = 0.5;
-				break;
-		case 18: _alpha = 1000;
-				_beta = 0.5;
-				break;
+		case 17:
+			_alpha = 10;
+			_beta = 0.5;
+			break;
 
-		case 20: _alpha = 10;
-		_xopt = std::vector<double>(_n,4.2096874633);
-		//_xopt = RandomOnesvector();
-			   // ExternalProduct(4.2096874633,_xopt);
-				break;
-		case 21: _hi = 101;
-				SetUpRandomValue(_hi);
-				_xopt = Y[0];
-		ExternalProduct(-1.0,_xopt);
-				break;
-		case 22: _hi = 21;
-				SetUpRandomValue(_hi);
-				_xopt = Y[0];
-		ExternalProduct(-1.0,_xopt);
-				break;
-		case 23: _alpha = 100;
-				break;
-		case 24: _alpha = 100;
-		u0 =2.5;
-		s = 1.0-1.0/(2.0*sqrt(_n+20.0)-8.2);
-		d = 1.0;
-		u1 = -sqrt((u1*u1-d)/s);
-				_xopt = RandomOnesvector();
-		ExternalProduct(u0/2,_xopt);
-		break;
+		case 18:
+			_alpha = 1000;
+			_beta = 0.5;
+			break;
+
+		case 20:
+			_alpha = 10;
+			_xopt = std::vector<double>(_n,4.2096874633);
+			//_xopt = RandomOnesvector();
+			// ExternalProduct(4.2096874633,_xopt);
+			break;
+
+		case 21:
+			_hi = 101;
+			SetUpRandomValue(_hi);
+			_xopt = Y[0];
+			ExternalProduct(-1.0,_xopt);
+			break;
+
+		case 22:
+			_hi = 21;
+			SetUpRandomValue(_hi);
+			_xopt = Y[0];
+			ExternalProduct(-1.0,_xopt);
+			break;
+
+		case 23:
+			_alpha = 100;
+			break;
+
+		case 24:
+			_alpha = 100;
+			u0 =2.5;
+			s = 1.0-1.0/(2.0*sqrt(_n+20.0)-8.2);
+			d = 1.0;
+			u1 = -sqrt((u1*u1-d)/s);
+			_xopt = RandomOnesvector();
+			ExternalProduct(u0/2,_xopt);
+			break;
+
 		default:
-				break;
+			break;
 	}
 }
+std::vector<double> Blackbox::getXopt(){
+	if (funcNum == 5 || funcNum == 20 || funcNum == 21 || funcNum == 22 || funcNum == 24)
+		return _xopt;
+	else
+	{ 
+		std::vector<double> tempVal = _xopt;
+		for(int i = 0; i<_n;i++)
+			tempVal[i]= -tempVal[i];
+		return tempVal;
+	}
+}
+
 
 void Blackbox::SetUpRandomValue(int hi){ // only used when f21 and f22 are called
 	std::vector<double> a(hi);
@@ -83,10 +119,10 @@ void Blackbox::SetUpRandomValue(int hi){ // only used when f21 and f22 are calle
 	C = std::vector<std::vector<double>>(hi);
 	for(int i = 0; i<hi; i++){
 		if (i == 0)
-			Y[i] = RandomDirection(4);
+			Y[i] = RandomDirection(4.0);
 		else{
 			w[i] = 1.1+8*(i-1)/hi;
-			Y[i] = RandomDirection(5);
+			Y[i] = RandomDirection(5.0);
 		}
 		C[i] = Lambda(a[i]);
 		ExternalProduct(1.0/pow(a[i],0.25),C[i]);
@@ -104,10 +140,10 @@ void Blackbox::SetUpAngles(){
 	}
 }
 
-std::vector<double> Blackbox::RandomDirection(int max){ // generates a random std::vector in [[-max, max ]]^n
+std::vector<double> Blackbox::RandomDirection(double max){ // generates a random std::vector in [-max, max ]^n
 	std::vector<double> x(_n,0.0);
 	for(int i = 0 ; i <_n ;i++ )
-		x[i] =  double(rand()%(2*max) -max);
+		x[i] =  (((double)rand()/(double)RAND_MAX)*2.0-1.0)*max;
 	return x;
 }
 
@@ -201,7 +237,6 @@ void Blackbox::Lambda(std::vector<double>& x){ // diagonal matrix seen as a std:
 		exponent=0.5*float(i-1)/float(_n-1);
 		x[i] =x[i]*pow (_alpha, exponent);
 	}
-
 }
 
 std::vector<double> Blackbox::Lambda(double a){ // diagonal matrix seen as a std::vector 
@@ -280,19 +315,19 @@ void Blackbox::DisplayTheoricalOptimal(){
 		std::cout<<"xopt :\n";
 	}
 	else{
-	std::cout<<"zopt :\n";
+		std::cout<<"zopt :\n";
 	}
 	std::cout<<" (";
 	for(int i = 0; i<_n; i++){
-	if((i+1)%15 == 0)
-		std::cout<<"\n";
+		if((i+1)%15 == 0)
+			std::cout<<"\n";
 		std::cout<<_xopt[i]<<"\t";
 	}
 	std::cout<<")";
 	if(funcNum ==9 || funcNum ==19)
 	std::cout<<"\n /!\\ this value is not computed directly\n";
 	if(funcNum ==20)
-	std::cout<<"\n/!\\ do not return 0 because it is a value obtained by a solver\n";
+	std::cout<<"\n /!\\ do not return 0 because it is a value obtained by a solver\n";
 	std::cout<<"\n f(xopt) = "<< f(_xopt)<<"\n";
 }
 
@@ -309,7 +344,6 @@ double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good
 
 double Blackbox::p1(std::vector<double> x){
 	return Norm(vectorSum(x,_xopt)) + _fopt;
-
 }
 
 double Blackbox::p2(std::vector<double> x){
@@ -328,9 +362,10 @@ double Blackbox::p3(std::vector<double> x){
 	Tasy(z);
 	Lambda(z);
 	double sum = 0;
-	for(int i = 0; i<_n; i++){
+
+	for(int i = 0; i<_n; i++)
 		sum += (double)cos(2*M_PI*z[i]);
-	}
+
 	return 10*(_n-sum) + pow(Norm(z),2) + _fopt;
 }
 
@@ -349,7 +384,7 @@ double Blackbox::p4(std::vector<double> x){
 
 	for(int i = 0; i<_n; i++){
 		sum1 += cos(2*M_PI*z[i]);
-	sum2 += z[i]*z[i];
+		sum2 += z[i]*z[i];
 	}
 	return 10*(_n-sum1) + sum2 + 100*Fpen(x) +_fopt;
 }
@@ -443,6 +478,7 @@ double Blackbox::p9(std::vector<double> x){
 	RotationR(x);
 	ExternalProduct(t,x);
 	z=vectorSum(x,O5);
+	//z = std::vector<double>(_n, 1.0); //to test the optimal value
 #ifdef _PARALLEL
 	#pragma omp parallel for reduction(+:sum)
 #endif
@@ -589,6 +625,7 @@ double Blackbox::p19(std::vector<double> x){
 	double v = std::max(sqrt(_n)/8.0,1.0);
 	ExternalProduct(v,x);
 	x = vectorSum(x,std::vector<double>(_n,0.5));
+	//x = std::vector<double>(_n, 1.0); //to test the optimal value
 	double sum = 0.0;
 #ifdef _PARALLEL
 	#pragma omp parallel for reduction(+:sum)
@@ -604,19 +641,9 @@ double Blackbox::p20(std::vector<double> x){
 	//the paper is confusing about this function, for original definition, see https://www.sfu.ca/~ssurjano/schwef.html
 	double opt = 4.2096874633;
 	x = vectorSum(x,std::vector<double>(_n,-opt));
-//	ExternalProduct(100.0,x);
-	//ExternalProduct(2.0,x);
-//	for(int i = 0; i<_n; i++){
-//	if(_xopt[i]<0)
-//	   x[i]=-x[i];
-//	}
-/*	for(int i = 1; i<_n; i++)
-		x[i]=x[i]+ 0.25*(x[i-1]-_xopt[i-1]) - _xopt[i-1];
 
-	x[0]=x[0]-_xopt[0];
-*/
-	Lambda(x);
-	RotationR(x);
+	Lambda(x); 
+	RotationR(x); // I added this line to generate an instance depending on the seed
 	x = vectorSum(x,_xopt);
 	ExternalProduct(100.0,x);
 
@@ -776,7 +803,7 @@ double Blackbox::blackbox(std::vector<double> x) {
 	case 24:
 		return p24(x);
 		break;
-
+// we can add call to external blackbox, like styrene with syscall
 	default:
 		std::cout<<"problem no "<< funcNum <<"not yet implemented.\n";
 		return -1.0;
