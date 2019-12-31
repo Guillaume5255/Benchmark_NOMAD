@@ -701,7 +701,6 @@ double Blackbox::p23(std::vector<double> x){
 	return 10.0*(prod - 1.0)/pow(_n,2) + Fpen(x) +_fopt;
 }
 double Blackbox::p24(std::vector<double> x){
-	// TODO : set up xopt in constructor
 	std::vector<double> sign(_n,0.0);
 	for(int i = 0; i<_n; i++){
 		if (_xopt[i]<0)

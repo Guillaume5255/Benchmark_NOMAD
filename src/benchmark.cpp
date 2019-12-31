@@ -180,13 +180,13 @@ int main (int argc, char **argv)
 {
 	bool useArgs = argc >1;
 
-	int DIM_MIN=8;
+	int DIM_MIN=2;
 	int PB_NUM_MIN=15;
 	int PB_SEED_MIN=0;
 	int POLL_STRATEGY_MIN=1;
 	int NB_2N_BLOCK_MIN=1;
 
-	int DIM_MAX=9;
+	int DIM_MAX=3;
 	int PB_NUM_MAX=16;
 	int PB_SEED_MAX=2;
 	int POLL_STRATEGY_MAX=5;

@@ -4,7 +4,7 @@
 
 int main(){
 	int n = 128, seed= 1;
-	std::vector<double> x(n,3.0);
+	std::vector<double> x(n,3.1);
 	bool ValueTestSuccessful = true;
 	std::cout<<"\n\n Vérification déterimnisme sur la meme instance de la boite noire \n \n";
 	for(int i = 1; i< 25; i++){
