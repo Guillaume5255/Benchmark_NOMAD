@@ -5,7 +5,7 @@ endif
 UNAME := $(shell uname)
 #$(shell pwd | sed 's/\/examples.*//')
 
-NOMAD_DIR	= $(shell pwd | sed 's/\/Benchmark_NOMAD\/src*//')/nomad
+NOMAD_DIR	= $(shell pwd | sed 's/\/Benchmark_NOMAD\/src*//')/nomad.4.0.0
 PB_DIR_NAME	= problems
 PB_DIR		= $(shell pwd)/$(PB_DIR_NAME)
 BUILD_DIR	= $(NOMAD_DIR)/build/$(VARIANT)

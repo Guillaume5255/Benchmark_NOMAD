@@ -6,8 +6,8 @@
 #SBATCH --nodes=1
 #SBATCH --mail-type=END
 #SBATCH --mail-user=Lameynardie.Guillaume@ireq.ca
-#SBATCH --array=1-96%40 #one task is a run with one specific poll strategy
-# 96 tasks that can be run simultanously but upper limit is 24
+#SBATCH --array=1-96%40 #one task is a run with one specific poll strategy and a pb number
+# 96 tasks that can be run simultanously but upper limit is 40
 module load gcc/8.3.0
 
 #min value
@@ -50,7 +50,7 @@ for (( dim=$DIM_MIN; dim<$DIM_MAX; dim=$((2*$dim))  )); do
 					$SLURM_RQ $CMD $ARGS $PAR
 					#runCounter=$(($runCounter +1))
 				else
-					for (( nb_2n_block=$NB_2N_BLOCK_MIN; nb_2n_block<$NB_2N_BLOCK_MAX; ++nb_2n_block)); do #=$(( 2*$nb_2n_block))   )); do
+					for (( nb_2n_block=$NB_2N_BLOCK_MIN; nb_2n_block<$NB_2N_BLOCK_MAX; ++nb_2n_block)); do
 						ARGS="$dim $pb_num $pb_seed $poll_strategy $nb_2n_block"
 						$SLURM_RQ $CMD $ARGS $PAR
 						#runCounter=$(($runCounter +1))
