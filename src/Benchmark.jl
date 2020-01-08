@@ -272,6 +272,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 	title!(Title)
 	xlabel!("nb2nBlock ")
 	ylabel!("optimal value")
+
 	cd("../plots")
 	savefig("all_$(dim)")
 end
@@ -360,6 +361,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	title!(Title)
 	xlabel!("nb 2n blocks")
 	ylabel!("mean optimal value")
+
 	cd("../plots")
 	savefig("mean_$(dim)")
 end

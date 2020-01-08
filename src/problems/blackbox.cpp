@@ -1,8 +1,8 @@
 #include "blackbox.hpp"
 
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), bseed(instance){
-	srand (bseed);
-	_xopt = RandomDirection(5.0); //std::vector<double>(_n,0.0);
+	srand(bseed);
+	_xopt = RandomDirection(5.0);
 	_ones = RandomOnesvector();
 	SetUpAngles();
 
@@ -317,18 +317,19 @@ void Blackbox::DisplayTheoricalOptimal(){
 	else{
 		std::cout<<"zopt :\n";
 	}
+	std::vector<double>  opt = getXopt();
 	std::cout<<" (";
 	for(int i = 0; i<_n; i++){
 		if((i+1)%15 == 0)
 			std::cout<<"\n";
-		std::cout<<_xopt[i]<<"\t";
+		std::cout<<opt[i]<<"\t";
 	}
 	std::cout<<")";
 	if(funcNum ==9 || funcNum ==19)
 	std::cout<<"\n /!\\ this value is not computed directly\n";
 	if(funcNum ==20)
 	std::cout<<"\n /!\\ do not return 0 because it is a value obtained by a solver\n";
-	std::cout<<"\n f(xopt) = "<< f(_xopt)<<"\n";
+	std::cout<<"\n f(xopt) = "<< f(opt)<<"\n";
 }
 
 double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good dimension 
@@ -497,7 +498,7 @@ double Blackbox::p10(std::vector<double> x){
 #ifdef _PARALLEL
 	#pragma omp parallel for reduction(+:sum)
 #endif
-	for(int i =0; i<_n; i++){
+	for(int i = 0; i<_n; i++){
 		double value = z[i]*z[i]*pow(10,6*i/(_n-1));
 		sum += value;
 	}
@@ -551,7 +552,7 @@ double Blackbox::p14(std::vector<double> x){
 	#pragma omp parallel for reduction(+:sum)
 #endif
 	for (int i =0 ; i<_n; i++){
-		double value = pow(abs(z[i]),2+4*double(i-1)/double(_n-1));
+		double value = pow(abs(z[i]),2+4*double(i)/double(_n-1));
 		sum += value;
 	}
 	return sqrt(sum);

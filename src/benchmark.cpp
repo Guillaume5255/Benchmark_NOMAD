@@ -9,10 +9,15 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-	My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams,const std::shared_ptr<Blackbox>& blackbox )
+	My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, int dim, int pb_num, int pb_seed )
 		: NOMAD::Evaluator(evalParams)
 	{
-		bb = blackbox;
+		std::cout<<"building the blackbox : seed = "<<pb_seed <<"\n";
+		auto start = omp_get_wtime();
+		bb = new Blackbox(dim, pb_num, pb_seed);
+		auto stop = omp_get_wtime();
+		std::cout<<"done in "<<stop-start<<" s\n\n";
+		bb->DisplayTheoricalOptimal();
 	}
 
 	~My_Evaluator() {}
@@ -45,8 +50,8 @@ public:
 		countEval = true;  // count a black-box evaluation
 		return eval_ok;	 // the evaluation succeeded
 	}
-private:
-	std::shared_ptr<Blackbox> bb;
+
+	Blackbox* bb;
 };
 
 // Initialization of all parameters that do not change from one poll method to another
@@ -94,9 +99,12 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 
 // Run NOMAD on the problem pb_num, generated with the random seed pb_seed, in dimension dim
 // Runing with the poll strategy poll_strategy and starting point x0
-void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& blackbox,int poll_strategy, int nb_of_2n_block, NOMAD::Point x0){
-	// creating the blackbox
+void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_block, NOMAD::Point x0){
+	//std::cout<<"building the blackbox\n";
+	//auto start = omp_get_wtime();
 	//auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
+	//auto stop = omp_get_wtime();
+	//std::cout<<"done in "<<stop-start<<" s\n\n";
 
 	// Initialize all parameters
 	auto params = std::make_shared<NOMAD::AllParameters>();
@@ -153,9 +161,9 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
 	TheMainStep->setAllParameters(params);
 	// Custom evaluator creation
-	std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams(),blackbox));
+	std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams(), dim,  pb_num,  pb_seed ));
 	TheMainStep->setEvaluator(std::move(ev));
-	std::cout<<"OK";
+
 	try
 	{
 		// Algorithm creation and execution
@@ -171,7 +179,6 @@ void optimize(int dim, int pb_num, int pb_seed, std::shared_ptr<Blackbox>& black
 
 	NOMAD::OutputQueue::Flush();
 	NOMAD::CacheBase::getInstance()->clear();
-
 }
 
 
@@ -181,16 +188,16 @@ int main (int argc, char **argv)
 	bool useArgs = argc >1;
 
 	int DIM_MIN=2;
-	int PB_NUM_MIN=15;
+	int PB_NUM_MIN=1;
 	int PB_SEED_MIN=0;
 	int POLL_STRATEGY_MIN=1;
-	int NB_2N_BLOCK_MIN=1;
+	int NB_2N_BLOCK_MIN=2;
 
 	int DIM_MAX=3;
-	int PB_NUM_MAX=16;
+	int PB_NUM_MAX=2;
 	int PB_SEED_MAX=2;
 	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=3;
+	int NB_2N_BLOCK_MAX=4;
 
 	if (useArgs){
 		DIM_MIN = atoi(argv[1]);
@@ -209,11 +216,7 @@ int main (int argc, char **argv)
 		for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
 
 			for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices (with householder) of each problem
-				std::cout<<"building the blackbox\n";
-				auto start = omp_get_wtime();
-				auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
-				auto stop = omp_get_wtime();
-				std::cout<<"done in "<<stop-start<<" s\n\n";
+
 				for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
 
@@ -221,7 +224,7 @@ int main (int argc, char **argv)
 						NOMAD::Point x0((size_t)dim, -3);
 						std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
 						auto start = omp_get_wtime();
-						optimize(dim, pb_num, pb_seed, blackbox, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
+						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
 						auto stop = omp_get_wtime();
 						std::cout<<"done in "<<stop-start<<" s\n\n";
 					}
@@ -231,13 +234,12 @@ int main (int argc, char **argv)
 							NOMAD::Point x0((size_t)dim, -3);
 							std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
 							auto start = omp_get_wtime();
-							optimize(dim, pb_num, pb_seed,blackbox, poll_strategy, nb_2n_block, x0);
+							optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
 							auto stop = omp_get_wtime();
 							std::cout<<"done in "<<stop-start<<" s\n\n";
 						}
 					}
 				}
-				blackbox->DisplayTheoricalOptimal();
 			}
 		}
 	}
