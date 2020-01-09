@@ -317,18 +317,19 @@ void Blackbox::DisplayTheoricalOptimal(){
 	else{
 		std::cout<<"zopt :\n";
 	}
+	std::vector<double> opt = getXopt();
 	std::cout<<" (";
 	for(int i = 0; i<_n; i++){
 		if((i+1)%15 == 0)
 			std::cout<<"\n";
-		std::cout<<_xopt[i]<<"\t";
+		std::cout<<opt[i]<<"\t";
 	}
 	std::cout<<")";
 	if(funcNum ==9 || funcNum ==19)
 	std::cout<<"\n /!\\ this value is not computed directly\n";
 	if(funcNum ==20)
 	std::cout<<"\n /!\\ do not return 0 because it is a value obtained by a solver\n";
-	std::cout<<"\n f(xopt) = "<< f(_xopt)<<"\n";
+	std::cout<<"\n f(xopt) = "<< f(opt)<<"\n";
 }
 
 double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good dimension 
