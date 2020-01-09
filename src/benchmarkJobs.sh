@@ -46,13 +46,25 @@ for (( dim=$DIM_MIN; dim<$DIM_MAX; dim=$((2*$dim))  )); do
 				ARGS="$dim $pb_num $pb_seed $poll_strategy $nb_2n_block"
 				#for poll strategy 1 and 2 the number of 2n blocks is already fixed, for classic poll,
 				#there is only one block, for the multi poll, there are 2*n+1 blocks of 2n points.
-				if [ "$poll_strategy" -eq "1" ]|| [ "$poll_strategy" -eq "2" ] ; then
-					$SLURM_RQ $CMD $ARGS $PAR
+				if [ "$poll_strategy" -eq "1" ] || [ "$poll_strategy" -eq "2" ] ; then
+					RUN_FILE="../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
+					if [-e "$RUN_FILE" ]; then 
+						echo "run already exists, skipping to next one."
+					else  
+						echo "run does not exists, creating it"
+						$SLURM_RQ $CMD $ARGS $PAR
+					fi
 					#runCounter=$(($runCounter +1))
 				else
 					for (( nb_2n_block=$NB_2N_BLOCK_MIN; nb_2n_block<$NB_2N_BLOCK_MAX; ++nb_2n_block)); do
 						ARGS="$dim $pb_num $pb_seed $poll_strategy $nb_2n_block"
-						$SLURM_RQ $CMD $ARGS $PAR
+						RUN_FILE="../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
+						if [-e "$RUN_FILE" ]; then 
+							echo "run already exists, skipping to next one."
+						else  
+							echo "run does not exists, creating it :"
+							$SLURM_RQ $CMD $ARGS $PAR
+						fi
 						#runCounter=$(($runCounter +1))
 					done
 				fi

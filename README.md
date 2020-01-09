@@ -16,11 +16,11 @@ with :
                 This feature allows us to generate a whole family of problems with only one initial problem, just like changing the     
                 starting point.
 
-  -pollStrategy : defines the poll strategy used duting the run (1 = classic poll, 2 = multi poll, 3 = oignon poll, 4 = extended 
+  -pollStrategy : defines the poll strategy used during the run (1 = classic poll, 2 = multi poll, 3 = oignon poll, 4 = extended 
                 poll)
 
   -numberOf2nBlocks : refers to the number of multiple of 2n point (where n is the dimension) generated for the poll step. this
-                   parameter can only be set for oignon poll and entended poll. For claccic poll,  numberOf2nBlocks = 1 and for 
+                   parameter can only be set for oignon poll and entended poll. For classic poll,  numberOf2nBlocks = 1 and for 
                    multi poll, numberOf2nBlocks = 2n+1.
 
 and contains two columns : the first column is the iteration number (of NOMAD4) at which a new success was found, and the second 

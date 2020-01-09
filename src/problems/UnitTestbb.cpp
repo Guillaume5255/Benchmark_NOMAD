@@ -89,7 +89,28 @@ int main(){
 		}
 		std::cout<<"\n";
 	}
+	
+	std::cout<<"verification que le chamgement de seed change bien les valeurs de f et de xopt \n";
+	n=3;
+	x = std::vector<double>(n,1.2);
+	for(int i = 1; i< 25; i++){
 
+		Blackbox bb1(n, i, 1), bb2(n, i, 2);
+		
+		double f=bb1.f(x);
+		double g=bb2.f(x) ;
+
+		bool isEqual = f==g;
+
+		if(!isEqual)
+			ValueTestSuccessful = false;
+
+		std::string checkTest = isEqual ? "Problem : same value for different seeds" : "OK";
+
+		cout<<"valeur de f"<< i <<" : "<< std::left<<f<<std::setw(25)<<" | "<<g<< std::setw(25) << "|"+checkTest <<"\n";
+		bb1.DisplayTheoricalOptimal();
+		bb2.DisplayTheoricalOptimal();
+	}
 	return 0;
 }
 

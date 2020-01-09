@@ -24,7 +24,7 @@ function Display(run::Run_t)
 	println(str)
 end
 
-dir0 = "../BIG-Run-partial"# "AllRuns/"*listOfDirs[1]
+dir0 = "../run"# "AllRuns/"*listOfDirs[1]
 
 function ExtractData(dir::String) 
 	#fills an array of Run_t objects, each object contains the data of the run : 
@@ -244,6 +244,8 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
+	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
+	legendPos = :topright
 	p = plot()
 	for run in runs
 
@@ -256,18 +258,23 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 		i = run.nb_2n_blocks
 		j = run.poll_strategy
 		if useLogScale
-			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], legend = false, xaxis = :log10, yaxis = :log10)
+			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log10, yaxis = :log10)
+			pollStr[j] = ""
 		else
-			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], legend = false)
+			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos)
+			pollStr[j] = ""
 		end
 	end
 
-	Title = "dimension $(dim)"
+
+
+	Title = "dimension $(dim) (1 dot = 1 run)"
 	title!(Title)
 	xlabel!("nb2nBlock ")
 	ylabel!("optimal value")
 
-	savefig("eff incr nb pt")
+	cd("../plots")
+	savefig("all_$(dim)")
 end
 
 function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
@@ -330,15 +337,18 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 
 	p = plot()
 	colors = [:black, :blue, :red, :yellow]
+	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
+	legendPos = :topleft
 	for run in runs 
 		j = run.poll_strategy
 		i = run.nb_2n_blocks
 		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
 			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, legend = false, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, legend = false, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, legend = false, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, legend = false, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				pollStr[j] = ""
 			else
 				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
 				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, legend = false, color = colors[j])#, yaxis = :log10)
@@ -347,10 +357,11 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		end
 	end
 
-	Title = "dimension $(dim) (1 dot = 1 run)"
+	Title = "dimension $(dim)"
 	title!(Title)
 	xlabel!("nb 2n blocks")
 	ylabel!("mean optimal value")
 
-	savefig("mean eff incr nb pt")
+	cd("../plots")
+	savefig("mean_$(dim)")
 end

@@ -1,8 +1,8 @@
 #include "blackbox.hpp"
 
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), bseed(instance){
-	srand (bseed);
-	_xopt = RandomDirection(5.0); //std::vector<double>(_n,0.0);
+	srand(bseed);
+	_xopt = RandomDirection(5.0);
 	_ones = RandomOnesvector();
 	SetUpAngles();
 
@@ -317,6 +317,7 @@ void Blackbox::DisplayTheoricalOptimal(){
 	else{
 		std::cout<<"zopt :\n";
 	}
+
 	std::vector<double> opt = getXopt();
 	std::cout<<" (";
 	for(int i = 0; i<_n; i++){
@@ -498,7 +499,7 @@ double Blackbox::p10(std::vector<double> x){
 #ifdef _PARALLEL
 	#pragma omp parallel for reduction(+:sum)
 #endif
-	for(int i =0; i<_n; i++){
+	for(int i = 0; i<_n; i++){
 		double value = z[i]*z[i]*pow(10,6*i/(_n-1));
 		sum += value;
 	}
@@ -552,7 +553,7 @@ double Blackbox::p14(std::vector<double> x){
 	#pragma omp parallel for reduction(+:sum)
 #endif
 	for (int i =0 ; i<_n; i++){
-		double value = pow(abs(z[i]),2+4*double(i-1)/double(_n-1));
+		double value = pow(abs(z[i]),2+4*double(i)/double(_n-1));
 		sum += value;
 	}
 	return sqrt(sum);

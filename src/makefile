@@ -5,7 +5,7 @@ endif
 UNAME := $(shell uname)
 #$(shell pwd | sed 's/\/examples.*//')
 
-NOMAD_DIR	= $(shell pwd | sed 's/\/Benchmark_NOMAD\/src*//')/nomad.4.0.0
+NOMAD_DIR	= $(shell pwd | sed 's/\/Benchmark_NOMAD\/src*//')/nomad
 PB_DIR_NAME	= problems
 PB_DIR		= $(shell pwd)/$(PB_DIR_NAME)
 BUILD_DIR	= $(NOMAD_DIR)/build/$(VARIANT)
@@ -14,7 +14,7 @@ OBJ_DIR		= $(BUILD_DIR)/obj
 INCLUDE_DIR	= $(BUILD_DIR)/include
 LIB_DIR		= $(BUILD_DIR)/lib
 BIN_DIR		= $(BUILD_DIR)/bin
-EXE		= $(BIN_DIR)/benchmark.exe
+EXE			= $(BIN_DIR)/benchmark.exe
 BENCHMARKER	= benchmarker.exe
 BENCHMARKER_SCRIPT = benchmarkJobs.sh
 
