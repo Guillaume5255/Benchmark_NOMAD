@@ -5,6 +5,8 @@
 
 #include "problems/blackbox.hpp"
 
+#include <sys/stat.h>
+
 // Link the evaluator of NOMAD with the blackbox
 class My_Evaluator : public NOMAD::Evaluator
 {
@@ -71,7 +73,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	int nbIter=500;
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",nbIter*(2*n)*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
 
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); 
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false);
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 	//p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
@@ -139,7 +141,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		name = name + std::to_string(nb_of_2n_block)+"_";
 		break;
 	case 4:
-		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",false); 
+		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",false);
 
 		params->getRunParams()->setAttributeValue("ENRICHED_POLL",true);
 		params->getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",nb_of_2n_block);
@@ -194,10 +196,10 @@ int main (int argc, char **argv)
 	int NB_2N_BLOCK_MIN=2;
 
 	int DIM_MAX=3;
-	int PB_NUM_MAX=2;
-	int PB_SEED_MAX=2;
+	int PB_NUM_MAX=24;
+	int PB_SEED_MAX=1;
 	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=4;
+	int NB_2N_BLOCK_MAX=3;
 
 	if (useArgs){
 		DIM_MIN = atoi(argv[1]);
@@ -221,22 +223,36 @@ int main (int argc, char **argv)
 
 
 					if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
-						NOMAD::Point x0((size_t)dim, -3);
-						std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
-						auto start = omp_get_wtime();
-						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
-						auto stop = omp_get_wtime();
-						std::cout<<"done in "<<stop-start<<" s\n\n";
+						struct stat buffer;
+						string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(1+2*dim*(poll_strategy-1))+"_.txt";
+						if(stat(name.c_str(),&buffer)!=0){
+							std::cout<<"\n"<<name <<" does not exists, creating it :\n";
+							NOMAD::Point x0((size_t)dim, -3);
+							std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+							auto start = omp_get_wtime();
+							optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
+							auto stop = omp_get_wtime();
+							std::cout<<"done in "<<stop-start<<" s\n\n";
+						}
+						else
+							 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
 					}
 					else
 					{
 						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block){ //we increase the number of 2n blocks to see the effect on the optimization
-							NOMAD::Point x0((size_t)dim, -3);
-							std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
-							auto start = omp_get_wtime();
-							optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
-							auto stop = omp_get_wtime();
-							std::cout<<"done in "<<stop-start<<" s\n\n";
+							struct stat buffer;
+							string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(nb_2n_block)+"_.txt";
+							if(stat(name.c_str(),&buffer)!=0){
+								std::cout<<"\n"<<name <<" does not exists, creating it :\n";
+								NOMAD::Point x0((size_t)dim, -3);
+								std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
+								auto start = omp_get_wtime();
+								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
+								auto stop = omp_get_wtime();
+								std::cout<<"done in "<<stop-start<<" s\n\n";
+							}
+							else
+								std::cout<<"\n"<<name<<" already exists, skipping to next one.\n";
 						}
 					}
 				}

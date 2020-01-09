@@ -1,7 +1,7 @@
 #include "blackbox.hpp"
 
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), bseed(instance){
-	srand(bseed);
+	srand(bseed+2);
 	_xopt = RandomDirection(5.0);
 	_ones = RandomOnesvector();
 	SetUpAngles();

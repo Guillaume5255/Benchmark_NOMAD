@@ -6,8 +6,8 @@
 #SBATCH --nodes=1
 #SBATCH --mail-type=END
 #SBATCH --mail-user=Lameynardie.Guillaume@ireq.ca
-#SBATCH --array=1-96%40 #one task is a run with one specific poll strategy and a pb number
-# 96 tasks that can be run simultanously but upper limit is 40
+#SBATCH --array=1-96%15 #one task is a run with one specific poll strategy and a pb number
+# 96 tasks that can be run simultanously but upper limit is 20
 module load gcc/8.3.0
 
 #min value
@@ -17,7 +17,7 @@ PB_NUM_MIN=$(( ($SLURM_ARRAY_TASK_ID)%24 + 1 ))
 PB_SEED_MIN=0
 POLL_STRATEGY_MIN=$(( ($SLURM_ARRAY_TASK_ID -1)/24 + 1))
 #POLL_STRATEGY_MIN=1
-NB_2N_BLOCK_MIN=9
+NB_2N_BLOCK_MIN=2
 
 
 #max value
@@ -47,24 +47,24 @@ for (( dim=$DIM_MIN; dim<$DIM_MAX; dim=$((2*$dim))  )); do
 				#for poll strategy 1 and 2 the number of 2n blocks is already fixed, for classic poll,
 				#there is only one block, for the multi poll, there are 2*n+1 blocks of 2n points.
 				if [ "$poll_strategy" -eq "1" ] || [ "$poll_strategy" -eq "2" ] ; then
-					RUN_FILE="../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
-					if [-e "$RUN_FILE" ]; then 
-						echo "run already exists, skipping to next one."
-					else  
-						echo "run does not exists, creating it"
+				#	RUN_FILE="$PWD/../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
+				#	if [[-f "$RUN_FILE" ]]; then
+				#		echo "run already exists, skipping to next one."
+				#	else
+				#		echo "run does not exists, creating it :"
 						$SLURM_RQ $CMD $ARGS $PAR
-					fi
+				#	fi
 					#runCounter=$(($runCounter +1))
 				else
 					for (( nb_2n_block=$NB_2N_BLOCK_MIN; nb_2n_block<$NB_2N_BLOCK_MAX; ++nb_2n_block)); do
 						ARGS="$dim $pb_num $pb_seed $poll_strategy $nb_2n_block"
-						RUN_FILE="../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
-						if [-e "$RUN_FILE" ]; then 
-							echo "run already exists, skipping to next one."
-						else  
-							echo "run does not exists, creating it :"
+						#RUN_FILE="$PWD/../run/run_${dim}_${pb_num}_${pb_seed}_${poll_strategy}_${nb_2n_block}_.txt"
+						#if [[-f "$RUN_FILE" ]]; then
+						#	echo "run already exists, skipping to next one."
+						#else
+						#	echo "run does not exists, creating it :"
 							$SLURM_RQ $CMD $ARGS $PAR
-						fi
+						#fi
 						#runCounter=$(($runCounter +1))
 					done
 				fi

@@ -27,7 +27,6 @@ int main(){
 	for(int i = 1; i< 25; i++){
 
 		Blackbox bb1(n, i, seed), bb2(n, i, seed);
-		
 		double f=bb1.f(x);
 		double g=bb2.f(x) ;
 
@@ -89,14 +88,14 @@ int main(){
 		}
 		std::cout<<"\n";
 	}
-	
+
 	std::cout<<"verification que le chamgement de seed change bien les valeurs de f et de xopt \n";
-	n=3;
-	x = std::vector<double>(n,1.2);
+	n=2;
+	x = std::vector<double>(n,-3.0);
 	for(int i = 1; i< 25; i++){
 
 		Blackbox bb1(n, i, 1), bb2(n, i, 2);
-		
+
 		double f=bb1.f(x);
 		double g=bb2.f(x) ;
 

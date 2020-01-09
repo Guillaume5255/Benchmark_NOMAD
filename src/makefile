@@ -35,14 +35,14 @@ LIB_DYNAMIC		= -l$(UTILS_NAME_AND_VERSION) -l$(EVAL_NAME_AND_VERSION) -l$(ALGOS_
 CXX =		g++
 
 ifeq ($(VARIANT), release)
-CXXFLAGS	= -O2
+#CXXFLAGS	= -O2
 else
 CXXFLAGS	= -g -DDEBUG
 endif
 
 
 
-CXXFLAGS	+= -std=c++14 -Wall -fpic
+CXXFLAGS	= -std=c++14 -Wall -fpic
 # Use OpenMP for parallelism (threads)
 ifndef NOOMP
 CXXFLAGS	+= -fopenmp
