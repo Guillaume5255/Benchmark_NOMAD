@@ -24,7 +24,19 @@ function Display(run::Run_t)
 	println(str)
 end
 
+
 dir0 = "../run"# "AllRuns/"*listOfDirs[1]
+
+
+function FindEmptyRun()
+	runs = ExtractData(dir0)
+	for run in runs
+		if run.eval_f == []
+			Display(run)
+		end
+	end
+end
+
 
 function ExtractData(dir::String) 
 	#fills an array of Run_t objects, each object contains the data of the run : 
@@ -41,6 +53,7 @@ function ExtractData(dir::String)
 	runsList = readdir(dir)
 	runs = Array{Run_t,1}([])
 	for runName in runsList
+		#println(runName)
 		runAttr=split(runName, "_")
 		if runAttr[1]=="run" #we only try to read run files
 			runData = readdlm(dir*"/"*runName)
@@ -61,6 +74,25 @@ function ExtractData(dir::String)
 	return runs
 end
 
+function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
+	newRuns = Array{Run_t,1}([])
+
+	for run in runs
+		addRun = true 
+		for pn in pbNum
+			if run.pb_num == pn 
+				addRun = false
+				break
+			end
+		end
+		if addRun
+			push!(newRuns, run)
+		end
+	end
+	return newRuns
+end
+
+
 function FilterRuns(att::String,value::Int64, runs::Array{Run_t,1})
 	newRuns = Array{Run_t,1}([])
 	if att == "DIM"
@@ -69,34 +101,33 @@ function FilterRuns(att::String,value::Int64, runs::Array{Run_t,1})
 				push!(newRuns, run)
 			end
 		end
-	end
-	if att == "PB_NUM"
+	elseif att == "PB_NUM"
 		for run in runs
-			if run.pb_num == value
+			if run.pb_num >= value
 				push!(newRuns, run)
 			end
 		end
-	end
-	if att == "PB_SEED"
+	elseif att == "PB_SEED"
 		for run in runs
 			if run.pb_seed == value
 				push!(newRuns, run)
 			end
 		end
-	end
-	if att == "POLL_STRATEGY"
+	elseif att == "POLL_STRATEGY"
 		for run in runs
 			if run.poll_strategy == value
 				push!(newRuns, run)
 			end
 		end
-	end
-	if att == "NB_2N_BLOCK"
+	elseif att == "NB_2N_BLOCK"
 		for run in runs
 			if run.nb_2n_blocks == value
 				push!(newRuns, run)
 			end
 		end
+	else 
+		println("attribute $attr unknown, returning not filtered runs")
+		return runs
 	end
 	return newRuns
 end
@@ -241,6 +272,8 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
+	#runs = FilterRuns("PB_SEED",3,runs)
+	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
@@ -258,7 +291,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 		i = run.nb_2n_blocks
 		j = run.poll_strategy
 		if useLogScale
-			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log10, yaxis = :log10)
+			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log2, yaxis = :log10)
 			pollStr[j] = ""
 		else
 			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos)
@@ -282,6 +315,10 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	#to see the effect of this increase in the number of point at each poll step
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
+	#runs = FilterRuns("PB_SEED",3,runs)
+	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	println(size(runs)[1])
+
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
@@ -344,10 +381,10 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		i = run.nb_2n_blocks
 		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
 			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log2)
+				#p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
+				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
+				#p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
 				pollStr[j] = ""
 			else
 				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
