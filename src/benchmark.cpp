@@ -6,6 +6,7 @@
 #include "problems/blackbox.hpp"
 
 #include <sys/stat.h>
+#include <sstream>
 
 // Link the evaluator of NOMAD with the blackbox
 class My_Evaluator : public NOMAD::Evaluator
@@ -19,7 +20,7 @@ public:
 		bb = new Blackbox(dim, pb_num, pb_seed);
 		auto stop = omp_get_wtime();
 		std::cout<<"done in "<<stop-start<<" s\n\n";
-		bb->DisplayTheoricalOptimal();
+		//bb->DisplayTheoricalOptimal();
 	}
 
 	~My_Evaluator() {}
@@ -36,9 +37,16 @@ public:
 
 		try
 		{
+			auto startEval = omp_get_wtime();
 			double f = bb->f(xtrue);
+			auto stopEval = omp_get_wtime();
 
-			std::string bbo = to_string(f);
+			evalTime += stopEval - startEval;
+
+			std::ostringstream strs;
+			strs << std::setprecision(20) << std::fixed << f;
+			std::string bbo = strs.str();//+" "+std::to_string(evalTime) ;
+
 			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 
 			eval_ok = true;
@@ -52,7 +60,7 @@ public:
 		countEval = true;  // count a black-box evaluation
 		return eval_ok;	 // the evaluation succeeded
 	}
-
+	mutable double evalTime = 0.0;
 	Blackbox* bb;
 };
 
@@ -80,12 +88,12 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",72);
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 72 on CASIR and to set on 11 at GERAD
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
 	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",1);
-	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ"));
+	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL OBJ"));
 
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
 
@@ -196,10 +204,10 @@ int main (int argc, char **argv)
 	int NB_2N_BLOCK_MIN=2;
 
 	int DIM_MAX=3;
-	int PB_NUM_MAX=24;
-	int PB_SEED_MAX=1;
+	int PB_NUM_MAX=25;
+	int PB_SEED_MAX=2;
 	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=3;
+	int NB_2N_BLOCK_MAX=4;
 
 	if (useArgs){
 		DIM_MIN = atoi(argv[1]);
@@ -217,7 +225,7 @@ int main (int argc, char **argv)
 
 		for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
 
-			for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices (with householder) of each problem
+			for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices and constant values of each problem
 
 				for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
@@ -239,7 +247,7 @@ int main (int argc, char **argv)
 					}
 					else
 					{
-						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block){ //we increase the number of 2n blocks to see the effect on the optimization
+						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++){ //we increase the number of 2n blocks to see the effect on the optimization
 							struct stat buffer;
 							string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(nb_2n_block)+"_.txt";
 							if(stat(name.c_str(),&buffer)!=0){

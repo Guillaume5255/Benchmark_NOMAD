@@ -31,7 +31,10 @@ public:
 	double _alpha, _beta, 
 			_fopt = 0.0,
 			_f0 = 0,	//used in problem 16
-			u0,u1,s,d;	//used in problem 24
+			u0,u1,s,d,	//used in problem 24
+			startTimeOfFirstEval=-1.0, durationOfCurrentEval=0.0; //used to compute the duration of an eval
+
+
 	int _hi;	//used in problems 21 and 22
 
 	std::vector<std::vector<double>> _Q,_R,	//rotation matrix : randomly generated at the blackbox built 

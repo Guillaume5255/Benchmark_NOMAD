@@ -1,5 +1,5 @@
 using DelimitedFiles
 using Plots
-pyplot()
+gr()
 include("Benchmark.jl")
 

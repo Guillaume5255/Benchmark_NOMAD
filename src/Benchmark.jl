@@ -273,7 +273,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
 	#runs = FilterRuns("PB_SEED",3,runs)
-	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
@@ -291,7 +291,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 		i = run.nb_2n_blocks
 		j = run.poll_strategy
 		if useLogScale
-			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log2, yaxis = :log10)
+			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log10, yaxis = :log10)
 			pollStr[j] = ""
 		else
 			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos)
@@ -316,7 +316,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
 	#runs = FilterRuns("PB_SEED",3,runs)
-	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
 	println(size(runs)[1])
 
 	if useLogScale
@@ -381,10 +381,10 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		i = run.nb_2n_blocks
 		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
 			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log2)
-				#p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
-				#p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log2, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
 				pollStr[j] = ""
 			else
 				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)

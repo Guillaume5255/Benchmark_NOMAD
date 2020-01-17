@@ -344,6 +344,12 @@ double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good
 	}
 }
 
+//double Blackbox::getEvalTime(){ // returns the cumulative time spent in evaluations since the first one to the last one.
+	
+
+//	return
+//}
+
 double Blackbox::p1(std::vector<double> x){
 	return Norm(vectorSum(x,_xopt)) + _fopt;
 }
