@@ -45,7 +45,7 @@ public:
 
 			std::ostringstream strs;
 			strs << std::setprecision(20) << std::fixed << f;
-			std::string bbo = strs.str();//+" "+std::to_string(evalTime) ;
+			std::string bbo = strs.str()+" "+std::to_string(evalTime) ;
 
 			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 
@@ -69,7 +69,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 {
 	// parameters creation
 	p.getPbParams()->setAttributeValue("DIMENSION", n);
-	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ"));
+	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EXTRA_O"));
 
 	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -5.0)); // all var. >= -5
 	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0)); // all var. <= 5
@@ -88,7 +88,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11); // to set to 72 on CASIR and to set on 11 at GERAD
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
@@ -109,7 +109,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 
 // Run NOMAD on the problem pb_num, generated with the random seed pb_seed, in dimension dim
 // Runing with the poll strategy poll_strategy and starting point x0
-void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_block, NOMAD::Point x0){
+void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_block){
 	//std::cout<<"building the blackbox\n";
 	//auto start = omp_get_wtime();
 	//auto blackbox = std::make_shared<Blackbox>(dim, pb_num, pb_seed);
@@ -123,6 +123,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 	auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 
+	NOMAD::Point x0((size_t)dim, -3);
 	params->getPbParams()->setAttributeValue("X0", x0);
 
 	switch (poll_strategy)
@@ -164,7 +165,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		break;
 	}
 	name = name + ".txt";
-	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name));
+	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" EVAL BBO"));
 
 
 	auto TheMainStep = std::make_unique<NOMAD::MainStep>();
@@ -176,10 +177,15 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 	try
 	{
+		std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+		auto start = omp_get_wtime();
 		// Algorithm creation and execution
 		TheMainStep->start();
 		TheMainStep->run();
 		TheMainStep->end();
+
+		auto stop = omp_get_wtime();
+		std::cout<<"done in "<<stop-start<<" s\n\n";
 	}
 
 	catch(std::exception &e)
@@ -235,29 +241,23 @@ int main (int argc, char **argv)
 						string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(1+2*dim*(poll_strategy-1))+"_.txt";
 						if(stat(name.c_str(),&buffer)!=0){
 							std::cout<<"\n"<<name <<" does not exists, creating it :\n";
-							NOMAD::Point x0((size_t)dim, -3);
-							std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
-							auto start = omp_get_wtime();
-							optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1), x0);
-							auto stop = omp_get_wtime();
-							std::cout<<"done in "<<stop-start<<" s\n\n";
+
+							optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
+							
 						}
 						else
 							 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
 					}
 					else
 					{
-						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++){ //we increase the number of 2n blocks to see the effect on the optimization
+						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++){ //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
 							struct stat buffer;
 							string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(nb_2n_block)+"_.txt";
 							if(stat(name.c_str(),&buffer)!=0){
 								std::cout<<"\n"<<name <<" does not exists, creating it :\n";
-								NOMAD::Point x0((size_t)dim, -3);
-								std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<", Number of blocks = "<<nb_2n_block<<"\n";
-								auto start = omp_get_wtime();
-								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block, x0);
-								auto stop = omp_get_wtime();
-								std::cout<<"done in "<<stop-start<<" s\n\n";
+								
+								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
+								
 							}
 							else
 								std::cout<<"\n"<<name<<" already exists, skipping to next one.\n";

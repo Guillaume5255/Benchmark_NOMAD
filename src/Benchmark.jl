@@ -17,6 +17,7 @@ mutable struct Run_t
 	nb_2n_blocks::Int64
 	eval_nb::Array{Float64,1}
 	eval_f::Array{Float64,1}
+	eval_time::Array{Float64,1}
 end
 
 function Display(run::Run_t)
@@ -65,7 +66,8 @@ function ExtractData(dir::String)
 			parse(Int,runAttr[5]),
 			parse(Int,runAttr[6]),
 			runData[:,1],
-			runData[:,2])
+			runData[:,2],
+			runData[:,3])
 			#println("minimum f value : "*string(minimum(run.eval_f)))
 			#println("run_"*string(run.pb_num)*"_"*string(run.pb_seed)*"_"*string(run.poll_strategy))
 			push!(runs, run)
