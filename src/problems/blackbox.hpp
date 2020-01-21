@@ -25,7 +25,7 @@ public:
 	
 	void DisplayTheoricalOptimal();
 	
-	std::vector<double> getX0(){return _x0}
+	std::vector<double> getX0(){return _x0;}
 	std::vector<double> getXopt();
 
 private: //to comment when doing unit test 
@@ -33,7 +33,7 @@ private: //to comment when doing unit test
 	double _alpha, _beta, 
 			_fopt = 0.0,
 			_f0 = 0,	//used in problem 16
-			u0,u1,s,d,	//used in problem 24
+			u0,u1,s,d;	//used in problem 24
 
 	int _hi;	//used in problems 21 and 22
 

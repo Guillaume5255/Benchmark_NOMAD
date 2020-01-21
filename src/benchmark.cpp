@@ -40,8 +40,8 @@ public:
 			evalTime += stopEval - startEval;
 
 			std::ostringstream strs;
-			strs << std::setprecision(20) << std::fixed << f;
-			std::string bbo = strs.str()+" "+std::to_string(evalTime) ;
+			strs << std::setprecision(10) << std::fixed << f <<" "<< evalTime;
+			std::string bbo = strs.str();//+" "+std::to_string(evalTime) ;
 
 			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 
@@ -84,7 +84,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 72 on CASIR and to set on 11 at GERAD
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
@@ -118,7 +118,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 
 	auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
-
+	int nbIter = 500; // to change in initParams too
 	switch (poll_strategy)
 	{
 	case 1:
@@ -152,12 +152,12 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 		name = name + std::to_string(nb_of_2n_block)+"_";
 		break;
-	case 5 :
-		int nbIter = 500; // to change in initParams too
+	case 5:
 		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",false);
 
 		params->getRunParams()->setAttributeValue("LH_EVAL",(2*dim)*nb_of_2n_block*nbIter); //with this parameter, there are no iteration, we just sample the whole region and evaluate all at once
 		name = name + std::to_string(nb_of_2n_block)+"_";
+		break;
 
 	default:
 		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",true);
@@ -209,11 +209,14 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		{
 			std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
 		}
+
+
+       		NOMAD::OutputQueue::Flush();
+        	NOMAD::CacheBase::getInstance()->clear();
+
+	}
 	else
 		 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
-
-	NOMAD::OutputQueue::Flush();
-	NOMAD::CacheBase::getInstance()->clear();
 }
 
 
@@ -254,12 +257,11 @@ int main (int argc, char **argv)
 
 				for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
-					if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
+					if(poll_strategy ==1 || poll_strategy == 2) //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
 						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
-
 					else{
 						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++) //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
-							if nb_2n_block <= 8
+							if( nb_2n_block <= 8 )
 								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
 							else
 								optimize(dim, pb_num, pb_seed, poll_strategy, pow(2, nb_2n_block-8+3));
