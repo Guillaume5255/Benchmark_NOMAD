@@ -4,6 +4,7 @@
 #include "Param/AllParameters.hpp"
 
 #include "problems/blackbox.hpp"
+#include "Type/LHSearchType.hpp"
 
 #include <sys/stat.h>
 #include <sstream>
@@ -12,14 +13,9 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-	My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, int dim, int pb_num, int pb_seed )
-		: NOMAD::Evaluator(evalParams)
+	My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, int dim, int pb_num, int pb_seed ) : NOMAD::Evaluator(evalParams)
 	{
-		std::cout<<"building the blackbox : seed = "<<pb_seed <<"\n";
-		auto start = omp_get_wtime();
 		bb = new Blackbox(dim, pb_num, pb_seed);
-		auto stop = omp_get_wtime();
-		std::cout<<"done in "<<stop-start<<" s\n\n";
 		//bb->DisplayTheoricalOptimal();
 	}
 
@@ -78,7 +74,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	// the algorithm terminates after 1000 black-box evaluations,
 	// or 2000 total evaluations, including cache hits and evalutions for
 	// which countEval was false.
-	int nbIter=500;
+	int nbIter=500; // to change in optimize too
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",nbIter*(2*n)*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
 
 	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false);
@@ -123,9 +119,6 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 	auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 
-	NOMAD::Point x0((size_t)dim, -3);
-	params->getPbParams()->setAttributeValue("X0", x0);
-
 	switch (poll_strategy)
 	{
 	case 1:
@@ -159,39 +152,65 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 		name = name + std::to_string(nb_of_2n_block)+"_";
 		break;
+	case 5 :
+		int nbIter = 500; // to change in initParams too
+		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",false);
+
+		params->getRunParams()->setAttributeValue("LH_EVAL",(2*dim)*nb_of_2n_block*nbIter); //with this parameter, there are no iteration, we just sample the whole region and evaluate all at once
+		name = name + std::to_string(nb_of_2n_block)+"_";
 
 	default:
 		params->getRunParams()->setAttributeValue("CLASSICAL_POLL",true);
+		name = name + "1_";
 		break;
 	}
 	name = name + ".txt";
 	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" EVAL BBO"));
 
 
-	auto TheMainStep = std::make_unique<NOMAD::MainStep>();
-
-	TheMainStep->setAllParameters(params);
 	// Custom evaluator creation
 	std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams(), dim,  pb_num,  pb_seed ));
+
+
+
+
+	NOMAD::Point x0((size_t)dim); //getting starting point from the problem created in the evaluator
+	std::vector<double> x0true = ev->bb->getX0();
+	for(int i = 0; i<dim ; i++)
+		x0[i] =  NOMAD::Double(x0true[i]);
+
+	params->getPbParams()->setAttributeValue("X0", x0);
+
+
+
+
+
+	auto TheMainStep = std::make_unique<NOMAD::MainStep>();
+	TheMainStep->setAllParameters(params);
 	TheMainStep->setEvaluator(std::move(ev));
 
-	try
-	{
-		std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
-		auto start = omp_get_wtime();
-		// Algorithm creation and execution
-		TheMainStep->start();
-		TheMainStep->run();
-		TheMainStep->end();
+	struct stat buffer;
+	if(stat(name.c_str(),&buffer)!=0){ //check if the run file already exists
+		std::cout<<"\n"<<name <<" does not exists, creating it :\n";
+		try
+		{
+			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+			auto start = omp_get_wtime();
+			// Algorithm creation and execution
+			TheMainStep->start();
+			TheMainStep->run();
+			TheMainStep->end();
 
-		auto stop = omp_get_wtime();
-		std::cout<<"done in "<<stop-start<<" s\n\n";
-	}
+			auto stop = omp_get_wtime();
+			std::cout<<"done in "<<stop-start<<" s\n\n";
+		}
 
-	catch(std::exception &e)
-	{
-		std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
-	}
+		catch(std::exception &e)
+		{
+			std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
+		}
+	else
+		 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
 
 	NOMAD::OutputQueue::Flush();
 	NOMAD::CacheBase::getInstance()->clear();
@@ -235,34 +254,18 @@ int main (int argc, char **argv)
 
 				for(int poll_strategy = POLL_STRATEGY_MIN ; poll_strategy < POLL_STRATEGY_MAX ; poll_strategy++){ //1 : classical poll, 2 : multi poll, 3 : oignon poll, 4 : enriched poll
 
-
 					if(poll_strategy ==1 || poll_strategy == 2){ //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
-						struct stat buffer;
-						string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(1+2*dim*(poll_strategy-1))+"_.txt";
-						if(stat(name.c_str(),&buffer)!=0){
-							std::cout<<"\n"<<name <<" does not exists, creating it :\n";
+						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
 
-							optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
-							
-						}
-						else
-							 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
-					}
-					else
-					{
-						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++){ //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
-							struct stat buffer;
-							string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(nb_2n_block)+"_.txt";
-							if(stat(name.c_str(),&buffer)!=0){
-								std::cout<<"\n"<<name <<" does not exists, creating it :\n";
-								
+					else{
+						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++) //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
+							if nb_2n_block <= 8
 								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
-								
-							}
 							else
-								std::cout<<"\n"<<name<<" already exists, skipping to next one.\n";
-						}
+								optimize(dim, pb_num, pb_seed, poll_strategy, pow(2, nb_2n_block-8+3));
+
 					}
+
 				}
 			}
 		}

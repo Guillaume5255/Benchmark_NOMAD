@@ -24,22 +24,23 @@ public:
 	double f(std::vector<double> x) ;
 	
 	void DisplayTheoricalOptimal();
+	
+	std::vector<double> getX0(){return _x0}
 	std::vector<double> getXopt();
 
-//private: to comment when doing unit test 
-	const int _n,funcNum,bseed;	//dimension, problem number and seed for the generation of random matrix
+private: //to comment when doing unit test 
+	const int _n,funcNum,pb_seed;	//dimension, problem number and seed for the generation of random matrix
 	double _alpha, _beta, 
 			_fopt = 0.0,
 			_f0 = 0,	//used in problem 16
 			u0,u1,s,d,	//used in problem 24
-			startTimeOfFirstEval=-1.0, durationOfCurrentEval=0.0; //used to compute the duration of an eval
-
 
 	int _hi;	//used in problems 21 and 22
 
 	std::vector<std::vector<double>> _Q,_R,	//rotation matrix : randomly generated at the blackbox built 
 									C, Y;	//random matrix used for problems 21 and 22
-	std::vector<double> _xopt,	//value for optimal solution (when defined in the problem)
+	std::vector<double> _x0,	//starting point, randomly chosen
+						_xopt,	//value for optimal solution (when defined in the problem)
 						_ones,	//vector with +1 or -1 coordiantes randomly distributed
 						w,		//vector used for pb 21 and 22
 						_theta, _phi;	//random rotation angles needed in RotationQ,R

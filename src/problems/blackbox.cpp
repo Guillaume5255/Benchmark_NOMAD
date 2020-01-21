@@ -1,7 +1,10 @@
 #include "blackbox.hpp"
 
-Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), bseed(instance){
-	srand(bseed+2);
+Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), pb_seed(instance){
+	std::cout<<"\n building the blackbox : seed = "<<pb_seed <<"\n";
+	auto start = omp_get_wtime();
+	srand(pb_seed+2);
+	_x0 = RandomDirection(5.0);
 	_xopt = RandomDirection(5.0);
 	_ones = RandomOnesvector();
 	SetUpAngles();
@@ -93,6 +96,8 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 		default:
 			break;
 	}
+	auto stop = omp_get_wtime();
+		std::cout<<"\n Done in "<<stop-start<<" s\n";
 }
 std::vector<double> Blackbox::getXopt(){
 	if (funcNum == 5 || funcNum == 20 || funcNum == 21 || funcNum == 22 || funcNum == 24)
