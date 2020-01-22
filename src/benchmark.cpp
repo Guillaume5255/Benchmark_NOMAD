@@ -195,6 +195,8 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		try
 		{
 			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+			if(nb_of_2n_block > 129)
+                		std::cout<<"what the fuck, nb2nblock = "<<nb_of_2n_block<<"\n";
 			auto start = omp_get_wtime();
 			// Algorithm creation and execution
 			TheMainStep->start();
@@ -261,10 +263,7 @@ int main (int argc, char **argv)
 						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
 					else{
 						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++) //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
-							if( nb_2n_block <= 8 )
-								optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
-							else
-								optimize(dim, pb_num, pb_seed, poll_strategy, pow(2, nb_2n_block-8+3));
+							optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
 
 					}
 
