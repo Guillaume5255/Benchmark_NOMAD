@@ -10,7 +10,7 @@
 module load gcc/8.3.0 #to uncomment on CASIR
 
 #min value
-DIM_MIN=16
+DIM_MIN=64
 PB_NUM_MIN=$(( ($SLURM_ARRAY_TASK_ID)%24 + 1 )) #to uncomment on CASIR
 #PB_NUM_MIN=1 #to comment on CASIR
 PB_SEED_MIN=0
