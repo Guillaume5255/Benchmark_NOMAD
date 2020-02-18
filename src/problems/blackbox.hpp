@@ -66,7 +66,7 @@ private: //to comment when doing unit test
 	
 	void SetUpAngles();																	//set angles for the rotations
 	void SetUpRandomValue(int hi);														// set random values for pb 21 and 22
-
+	//analytical problems
 	double p1(std::vector<double> x);
 	double p2(std::vector<double> x);
 	double p3(std::vector<double> x);
