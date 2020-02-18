@@ -12,7 +12,7 @@ with :
   
   -problemNum : define which problem is used (1 to 24)
   
-  -problemSeed : is used to generate random deterministic componens in the selected problem (such as rotation matrix).
+  -problemSeed : is used to generate random deterministic componens in the selected problem (such as rotation matrix and starting point).
                 This feature allows us to generate a whole family of problems with only one initial problem, just like changing the     
                 starting point.
 
@@ -23,8 +23,8 @@ with :
                    parameter can only be set for oignon poll and entended poll. For classic poll,  numberOf2nBlocks = 1 and for 
                    multi poll, numberOf2nBlocks = 2n+1.
 
-and contains two columns : the first column is the iteration number (of NOMAD4) at which a new success was found, and the second 
-column is the value of f that led to the corresponding success.
+and contains three columns : the first column is the iteration number (of NOMAD4) at which a new success was found, the second 
+column is the value of f that led to the corresponding success, the third column is the time that went through since the begining of the optimization.
 
 All problems are bounded below by 0, are defined for x \in [-5, 5]^n and are without any constraint.
 An idea that could be exploited to build constrained problems would be to use one of those analytic problems ase objectif, ant one 

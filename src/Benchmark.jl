@@ -270,7 +270,7 @@ end
 function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 	#to run with one strategy where the number of 2n blocks can be set 
 	#to see the effect of this increase in the number of point at each poll step
-	colors = [:black, :blue, :red, :yellow]
+	colors = [:black, :blue, :red, :yellow, :green]
 
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
@@ -279,7 +279,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
-	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
+	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
 	legendPos = :topright
 	p = plot()
 	for run in runs
@@ -331,16 +331,16 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		end
 	end
 
-	RunsCounter = zeros(maxNb2nBlock, 4) #counts the number of runs made with the i-th strategy (columns) on specific nb2nBlock (lines)
-	maxFvalue = zeros(maxNb2nBlock, 4)
-	minFvalue = zeros(maxNb2nBlock, 4)
+	RunsCounter = zeros(maxNb2nBlock, 5) #counts the number of runs made with the i-th strategy (columns) on specific nb2nBlock (lines)
+	maxFvalue = zeros(maxNb2nBlock, 5)
+	minFvalue = zeros(maxNb2nBlock, 5)
 	for i in 1:maxNb2nBlock
 		for j in 1:4
 			minFvalue[i,j] = Inf
 		end
 	end
-	meanFvalue = zeros(maxNb2nBlock, 4)
-	sFvalue = zeros(maxNb2nBlock, 4)
+	meanFvalue = zeros(maxNb2nBlock, 5)
+	sFvalue = zeros(maxNb2nBlock, 5)
 
 	for run in runs
 		j = run.poll_strategy
@@ -375,8 +375,8 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	#println(sFvalue)
 
 	p = plot()
-	colors = [:black, :blue, :red, :yellow]
-	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
+	colors = [:black, :blue, :red, :yellow, :green]
+	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
 	legendPos = :topleft
 	for run in runs 
 		j = run.poll_strategy
