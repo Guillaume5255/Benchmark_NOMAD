@@ -94,7 +94,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
-	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",1);
+	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",2);
 	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL OBJ"));
 
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
@@ -175,20 +175,17 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 
 	// Custom evaluator creation
-	std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams(), dim,  pb_num,  pb_seed ));
+	std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
 
 
 
 
 	NOMAD::Point x0((size_t)dim); //getting starting point from the problem created in the evaluator
-	std::vector<double> x0true = ev->bb->getX0();
+	srand(pb_seed+2);//+2 becaus cf blackbox.cpp and the doc about srand(0) and srand(1)
 	for(int i = 0; i<dim ; i++)
-		x0[i] =  NOMAD::Double(x0true[i]);
+		x0[i] =  NOMAD::Double(((double)rand()/(double)RAND_MAX)*100);
 
 	params->getPbParams()->setAttributeValue("X0", x0);
-
-
-
 
 
 	auto TheMainStep = std::make_unique<NOMAD::MainStep>();
