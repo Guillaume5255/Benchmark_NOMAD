@@ -58,16 +58,27 @@ function ExtractData(dir::String)
 		runAttr=split(runName, "_")
 		if runAttr[1]=="run" && parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
 			runData = readdlm(dir*"/"*runName)
-
-			run=Run_t(
-			parse(Int,runAttr[2]),
-			parse(Int,runAttr[3]),
-			parse(Int,runAttr[4]),
-			parse(Int,runAttr[5]),
-			parse(Int,runAttr[6]),
-			runData[:,1],
-			runData[:,2],
-			runData[:,3])
+			if runAttr[3] == 25
+				run=Run_t(
+				parse(Int,runAttr[2]),
+				parse(Int,runAttr[3]),
+				parse(Int,runAttr[4]),
+				parse(Int,runAttr[5]),
+				parse(Int,runAttr[6]),
+				runData[:,1],
+				runData[:,3],
+				runData[:,2])
+			else
+				run=Run_t(
+				parse(Int,runAttr[2]),
+				parse(Int,runAttr[3]),
+				parse(Int,runAttr[4]),
+				parse(Int,runAttr[5]),
+				parse(Int,runAttr[6]),
+				runData[:,1],
+				runData[:,2],
+				runData[:,3])
+			end
 			#println("minimum f value : "*string(minimum(run.eval_f)))
 			#println("run_"*string(run.pb_num)*"_"*string(run.pb_seed)*"_"*string(run.poll_strategy))
 			push!(runs, run)
