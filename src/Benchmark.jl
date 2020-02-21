@@ -56,7 +56,7 @@ function ExtractData(dir::String)
 	for runName in runsList
 		#println(runName)
 		runAttr=split(runName, "_")
-		if runAttr[1]=="run" #we only try to read run files
+		if runAttr[1]=="run" && parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
 			runData = readdlm(dir*"/"*runName)
 
 			run=Run_t(
@@ -274,6 +274,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
+
 	#runs = FilterRuns("PB_SEED",3,runs)
 	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
 	if useLogScale
@@ -317,9 +318,14 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	#to see the effect of this increase in the number of point at each poll step
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
+	#runs = FilterRuns("POLL_STRATEGY",3,runs)
+
+
 	#runs = FilterRuns("PB_SEED",3,runs)
-	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	println("number of runs in dimension $(dim) : ")
 	println(size(runs)[1])
+	
 
 	if useLogScale
 		runs = NormalizeRun(runs)
@@ -354,7 +360,8 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			minFvalue[i,j] = Fval
 		end
 	end
-	#println(RunsCounter)
+	println("run counter[i,j] = the number of runs made with i 2nblocks and poll strategy j")
+	println(RunsCounter)
 
 	for run in runs
 		j = run.poll_strategy
@@ -363,7 +370,8 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			meanFvalue[i,j]+= (run.eval_f[end])/RunsCounter[i,j]
 		end
 	end
-	#println(meanFvalue)
+	println("meanValue[i,j]=mean value of f* on the runs made with  i 2nblocks and poll strategy j")
+	println(meanFvalue)
 
 	for run in runs
 		j = run.poll_strategy
@@ -372,7 +380,8 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			sFvalue[i,j]+= ((run.eval_f[end]-meanFvalue[i,j])^2)/(RunsCounter[i,j]-1)
 		end
 	end
-	#println(sFvalue)
+	println("sFvalue[i,j]=standard deviation of f* on the runs made with  i 2nblocks and poll strategy j")
+	println(sFvalue)
 
 	p = plot()
 	colors = [:black, :blue, :red, :yellow, :green]
@@ -383,10 +392,14 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		i = run.nb_2n_blocks
 		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
 			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
-				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log10)
+				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
+				#println("plot 1 ok")
+				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log, yaxis = :log10)
+				#println("plot 2 ok")
+				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
+				#println("plot 3 ok")
+				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
+				#println("plot 4 ok")
 				pollStr[j] = ""
 			else
 				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
@@ -398,9 +411,9 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 
 	Title = "dimension $(dim)"
 	title!(Title)
-	xlabel!("nb 2n blocks")
-	ylabel!("mean optimal value")
+	xlabel!("nombre de bases positives")
+	ylabel!("valeurs optimales moyennes")
 
 	cd("../plots")
-	savefig("mean_$(dim)")
+	savefig("mean_difficult_$(dim)")
 end
