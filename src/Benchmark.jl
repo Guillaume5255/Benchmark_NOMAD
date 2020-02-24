@@ -20,13 +20,21 @@ mutable struct Run_t
 	eval_time::Array{Float64,1}
 end
 
+mutable struct Iter_t
+	run::Run_t
+	f_k::Array{Float64,1}
+	iteration::Array{Float64,1}
+end
+
+
 function Display(run::Run_t)
 	str = "$(run.dim)_$(run.pb_num)_$(run.pb_seed)_$(run.poll_strategy)_$(run.nb_2n_blocks)"
 	println(str)
 end
 
 
-dir0 = "../run"# "AllRuns/"*listOfDirs[1]
+dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
 
 
 function FindEmptyRun()
@@ -56,7 +64,7 @@ function ExtractData(dir::String)
 	for runName in runsList
 		#println(runName)
 		runAttr=split(runName, "_")
-		if runAttr[1]=="run" && parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
+		if runAttr[1]=="run" #&& parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
 			runData = readdlm(dir*"/"*runName)
 			if runAttr[3] == 25
 				run=Run_t(
@@ -86,6 +94,11 @@ function ExtractData(dir::String)
 	end
 	return runs
 end
+
+function BuildIterations(run::Run_t)
+	iterationCounter = [floor(k/(run.nb_2n_blocks*2*run.dim)) for k in run.f_eval]
+end
+
 
 function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
 	newRuns = Array{Run_t,1}([])
@@ -278,7 +291,7 @@ function MeanFinalStats()
 	ylabel!("mean f value when stopping criterion is reached")
 end
 
-function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
+function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks can be set 
 	#to see the effect of this increase in the number of point at each poll step
 	colors = [:black, :blue, :red, :yellow, :green]
@@ -322,18 +335,19 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool)
 
 	cd("../plots")
 	savefig("all_$(dim)")
+	cd("../src")
 end
 
-function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
+function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)#plots the mean f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks is increasing
 	#to see the effect of this increase in the number of point at each poll step
 	runs = ExtractData(dir0);
 	runs = FilterRuns("DIM",dim,runs)
-	#runs = FilterRuns("POLL_STRATEGY",3,runs)
+	#runs = FilterRuns("POLL_STRATEGY",1,runs)
 
 
 	#runs = FilterRuns("PB_SEED",3,runs)
-	runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
+	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
 	println("number of runs in dimension $(dim) : ")
 	println(size(runs)[1])
 	
@@ -348,16 +362,18 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 		end
 	end
 
-	RunsCounter = zeros(maxNb2nBlock, 5) #counts the number of runs made with the i-th strategy (columns) on specific nb2nBlock (lines)
-	maxFvalue = zeros(maxNb2nBlock, 5)
-	minFvalue = zeros(maxNb2nBlock, 5)
+	nbPollStrategies = 5
+
+	RunsCounter = zeros(maxNb2nBlock, nbPollStrategies) #counts the number of runs made with the i-th strategy (columns) on specific nb2nBlock (lines)
+	maxFvalue = zeros(maxNb2nBlock, nbPollStrategies)
+	minFvalue = zeros(maxNb2nBlock, nbPollStrategies)
 	for i in 1:maxNb2nBlock
-		for j in 1:4
+		for j in 1:nbPollStrategies
 			minFvalue[i,j] = Inf
 		end
 	end
-	meanFvalue = zeros(maxNb2nBlock, 5)
-	sFvalue = zeros(maxNb2nBlock, 5)
+	meanFvalue = zeros(maxNb2nBlock, nbPollStrategies)
+	sFvalue = zeros(maxNb2nBlock, nbPollStrategies)
 
 	for run in runs
 		j = run.poll_strategy
@@ -371,8 +387,14 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			minFvalue[i,j] = Fval
 		end
 	end
-	println("run counter[i,j] = the number of runs made with i 2nblocks and poll strategy j")
+	println("\n run counter[i,j] = the number of runs made with i 2nblocks and poll strategy j")
 	println(RunsCounter)
+
+	println("\n maxFvalue[i,j] = the biggest value of f* obtained with i 2nblocks and poll strategy j")
+	println(maxFvalue)
+
+	println("\n minFvalue[i,j] = the smallest value of f* obtained with i 2nblocks and poll strategy j")
+	println(minFvalue)
 
 	for run in runs
 		j = run.poll_strategy
@@ -381,7 +403,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			meanFvalue[i,j]+= (run.eval_f[end])/RunsCounter[i,j]
 		end
 	end
-	println("meanValue[i,j]=mean value of f* on the runs made with  i 2nblocks and poll strategy j")
+	println("\n meanValue[i,j]=mean value of f* on the runs made with  i 2nblocks and poll strategy j")
 	println(meanFvalue)
 
 	for run in runs
@@ -391,26 +413,42 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 			sFvalue[i,j]+= ((run.eval_f[end]-meanFvalue[i,j])^2)/(RunsCounter[i,j]-1)
 		end
 	end
-	println("sFvalue[i,j]=standard deviation of f* on the runs made with  i 2nblocks and poll strategy j")
+	println("\n sFvalue[i,j]=standard deviation of f* on the runs made with  i 2nblocks and poll strategy j")
 	println(sFvalue)
 
-	p = plot()
+	if dim<=8
+		maxgrad=3
+	else
+		maxgrad=6
+	end 
+	
+	graduations = [2^n for n in 1:maxgrad]
+
+	println("Plotting...")
+	p = plot(dpi=300)
 	colors = [:black, :blue, :red, :yellow, :green]
+	markers = [:circle, :square, :utriangle, :dtriangle]
 	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
-	legendPos = :topleft
+	legendPos = :topright
+	Xgrad = :log2
+	Ygrad = :log10
+	msize = 3
+	mcontour = 0.3
+
+
 	for run in runs 
 		j = run.poll_strategy
 		i = run.nb_2n_blocks
 		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
 			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], seriestype=:scatter, label = pollStr[j],legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
-				#println("plot 1 ok")
-				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter,  marker = :square, label = "",legend=legendPos, color = colors[j], xaxis = :log, yaxis = :log10)
-				#println("plot 2 ok")
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
-				#println("plot 3 ok")
-				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, label = "",legend=legendPos, color = colors[j], xaxis = :log10, yaxis = :log)
-				#println("plot 4 ok")
+				p = plot!(p,[i], [meanFvalue[i,j]], 				 seriestype=:scatter, marker = markers[1], markersize = msize, markerstrokewidth = mcontour, label = pollStr[j],legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+
+				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter, marker = markers[2], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+ 
+				p = plot!(p,[i], [maxFvalue[i,j]], 					 seriestype=:scatter, marker = markers[3], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+
+				p = plot!(p,[i], [minFvalue[i,j]], 					 seriestype=:scatter, marker = markers[4], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+
 				pollStr[j] = ""
 			else
 				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
@@ -425,6 +463,11 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
 
+	println("saving in ../Plots")
+
 	cd("../plots")
 	savefig("mean_difficult_$(dim)")
+	cd("../src")
+
+	println("done")
 end

@@ -1,7 +1,13 @@
 using DelimitedFiles
-#using PGFPlots
-#pgfplots()
 using Plots
-gr()
+pgfplots()
+
+#using Plots
+#gr()
+
+#using Plots
+#gadfly()
+#pyplot()
+
 include("Benchmark.jl")
 
