@@ -304,7 +304,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
-	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
+	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
 	legendPos = :topright
 	p = plot()
 	for run in runs
@@ -318,7 +318,7 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*
 		i = run.nb_2n_blocks
 		j = run.poll_strategy
 		if useLogScale
-			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log10, yaxis = :log10)
+			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos, xaxis = :log2, yaxis = :log10)
 			pollStr[j] = ""
 		else
 			p=plot!(p,[i], [Fvalue], seriestype=:scatter, color = colors[j], label = pollStr[j], legend = legendPos)
@@ -338,11 +338,10 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*
 	cd("../src")
 end
 
-function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)#plots the mean f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
+function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1})#plots the mean f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks is increasing
 	#to see the effect of this increase in the number of point at each poll step
-	runs = ExtractData(dir0);
-	runs = FilterRuns("DIM",dim,runs)
+	runs = FilterRuns("DIM",dim,allRuns)
 	#runs = FilterRuns("POLL_STRATEGY",1,runs)
 
 
@@ -428,37 +427,40 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)#plot
 	p = plot(dpi=300)
 	colors = [:black, :blue, :red, :yellow, :green]
 	markers = [:circle, :square, :utriangle, :dtriangle]
-	pollStr = ["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
+	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
 	legendPos = :topright
 	Xgrad = :log2
 	Ygrad = :log10
 	msize = 3
-	mcontour = 0.3
+	mcontour = 0.2
 
 
-	for run in runs 
-		j = run.poll_strategy
-		i = run.nb_2n_blocks
-		if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
-			if useLogScale 
-				p = plot!(p,[i], [meanFvalue[i,j]], 				 seriestype=:scatter, marker = markers[1], markersize = msize, markerstrokewidth = mcontour, label = pollStr[j],legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+	#for run in runs 
+	for j in 1:nbPollStrategies
+		for i in 1:maxNb2nBlock
+		#j = run.poll_strategy
+		#i = run.nb_2n_blocks
+			if RunsCounter[i,j]>0 #we only plot when there exist at least one run 
+				if useLogScale 
+					p = plot!(p,[i], [meanFvalue[i,j]], 				 seriestype=:scatter, marker = markers[1], markersize = msize, markerstrokewidth = mcontour, label = pollStr[j],legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
 
-				p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter, marker = markers[2], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
- 
-				p = plot!(p,[i], [maxFvalue[i,j]], 					 seriestype=:scatter, marker = markers[3], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+					p = plot!(p,[i], [meanFvalue[i,j]+sqrt(sFvalue[i,j])], seriestype=:scatter, marker = markers[2], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+	
+					p = plot!(p,[i], [maxFvalue[i,j]], 					 seriestype=:scatter, marker = markers[3], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
 
-				p = plot!(p,[i], [minFvalue[i,j]], 					 seriestype=:scatter, marker = markers[4], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
+					p = plot!(p,[i], [minFvalue[i,j]], 					 seriestype=:scatter, marker = markers[4], markersize = msize, markerstrokewidth = mcontour, label = "",		  legend=legendPos, color = colors[j], yaxis = Ygrad, xaxis = Xgrad)#, xticks = graduations)
 
-				pollStr[j] = ""
-			else
-				p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
-				p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, legend = false, color = colors[j])#, yaxis = :log10)
-				p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, legend = false, color = colors[j])#, yaxis = :log10)
+					pollStr[j] = ""
+				else
+					p = plot!(p,[i], [meanFvalue[i,j]], yerr=sqrt(sFvalue[i,j]), seriestype=:scatter, legend = false, color = colors[j])#, yaxis = :log10)
+					p = plot!(p,[i], [maxFvalue[i,j]], seriestype=:scatter, marker = :utriangle, legend = false, color = colors[j])#, yaxis = :log10)
+					p = plot!(p,[i], [minFvalue[i,j]], seriestype=:scatter, marker = :dtriangle, legend = false, color = colors[j])#, yaxis = :log10)
+				end
 			end
 		end
 	end
 
-	Title = "dimension $(dim)"
+	Title = "dimension = $(dim)"
 	title!(Title)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
@@ -466,8 +468,16 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool)#plot
 	println("saving in ../Plots")
 
 	cd("../plots")
-	savefig("mean_difficult_$(dim)")
+	savefig(p,"mean_$(dim).svg")
 	cd("../src")
-
+	#isplay(p)
 	println("done")
 end
+
+function PlotMeanFinalValue()
+	runsPbTest = ExtractData(dir0);
+	for i in [2 4 8 16 32 64]
+		MeanPerformanceOfIncreasingNbOfPoint(i, true,runsPbTest)
+	end
+end
+

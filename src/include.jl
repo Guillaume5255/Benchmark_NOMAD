@@ -1,6 +1,7 @@
 using DelimitedFiles
 using Plots
 pgfplots()
+using LaTeXStrings
 
 #using Plots
 #gr()
