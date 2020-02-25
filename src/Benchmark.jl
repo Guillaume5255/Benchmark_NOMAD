@@ -22,8 +22,8 @@ end
 
 mutable struct Iter_t
 	run::Run_t
-	f_k::Array{Float64,1}
-	iteration::Array{Float64,1}
+	f_k::Array{Float64,1} #array with as much elements as the number of iterations, element k is the best value of f obtainted at iteration k
+	nb_iter::Int64 
 end
 
 
@@ -33,12 +33,8 @@ function Display(run::Run_t)
 end
 
 
-dir0 = "../run-pb-test" #"../run-pb-blackbox"
-
-
-
-function FindEmptyRun()
-	runs = ExtractData(dir0)
+function FindEmptyRun(dir::String)
+	runs = ExtractData(dir)
 	for run in runs
 		if run.eval_f == []
 			Display(run)
@@ -95,9 +91,30 @@ function ExtractData(dir::String)
 	return runs
 end
 
-function BuildIterations(run::Run_t)
-	iterationCounter = [floor(k/(run.nb_2n_blocks*2*run.dim)) for k in run.f_eval]
+function BuildIteration(run::Run_t) # the output object is similar to the run object except it contains a field that is the number of iterations made during the corresponding run and the value of f at each of these iterations
+	nbIter = floor(run.eval_nb[end]/(run.nb_2n_blocks*2*run.dim))
+	iterationSuccess = []
+	nbPointsPerIter = run.nb_2n_blocks*2*run.dim
+	for k in 0:(nbIter-1)
+		fbest = run.eval_f[1]
+		for i in size(run.eval_f)[1]
+			if (run.eval_nb[i] >= k*run.nb_2n_blocks*2*run.dim) && (run.eval_nb[i]<(k+1)*run.nb_2n_blocks*2*run.dim)
+				if fbest > run.eval_f[i]
+					fbest = run.eval_f[i]
+				end
+			end
+		end
+		push!(iterationSuccess,fbest)
+	end
+	iteration = Iter_t(run, iterationSuccess, nbIter)
+	return iteration 
 end
+
+function BuildAllIterations(allRuns::Array{Run_t,1}) 
+	allIterations = [BuildIteration(run) for run in allRuns]
+	return allIterations
+end
+
 
 
 function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
@@ -118,8 +135,7 @@ function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
 	return newRuns
 end
 
-
-function FilterRuns(att::String,value::Int64, runs::Array{Run_t,1})
+function FilterRuns(att::String, value::Int64, runs::Array{Run_t,1})
 	newRuns = Array{Run_t,1}([])
 	if att == "DIM"
 		for run in runs
@@ -163,15 +179,18 @@ function NormalizeRun(runs::Array{Run_t,1})
 		fmax = run.eval_f[1]
 		for i in 1:size(run.eval_f)[1]
 			run.eval_f[i] = run.eval_f[i]+1
-			run.eval_nb[i] = run.eval_nb[i]/(run.nb_2n_blocks*2*run.dim)
+			#run.eval_nb[i] = run.eval_nb[i]/(run.nb_2n_blocks*2*run.dim)
 		end
 	end
 	return runs
 end
 
-function ObjectifEvolution()
+
+
+
+function ObjectifEvolution(dir::String)
 	#plots the decreasing of the objective function according to the number of evaluation
-	#runs = ExtractData(dir0)
+	runs = ExtractData(dir)
 	normalizedRuns = NormalizeRun(runs)
 	colors = [:black, :blue, :red, :yellow] #classic poll, multi poll, oignon poll, enriched poll
 	markers = [:cicle, :utrianngle, :dtriangle, :cross] #number of 2n block
@@ -191,11 +210,23 @@ function ObjectifEvolution()
 	return allplots[j]
 end
 
-function ObjectifFinalValue() 
+
+
+
+
+
+
+
+
+
+
+
+
+function ObjectifFinalValue( dim::Int64, allRuns::Array{Run_t,1}) 
 	#plots the final value of the objectif function (at the end of the optimization)
 	#to apply to one problem run with different seed and starting point
 	# note : increasing the number of points sampled with the dimension and looking at how the best objectif function value is evolving tells us if the strategy is scalable or not 
-	runs = ExtractData(dir0)
+	runs = FilterRuns("DIM", dim, allRuns)
 	#normalizedRuns = NormalizeRun(runs)
 	finalValueEClassic = []
 	finalValueFClassic = []
@@ -211,7 +242,7 @@ function ObjectifFinalValue()
 
 	for run in runs#normalizedRuns
 		i = run.poll_strategy
-		Fvalue = run.eval_f[end]#+1
+		Fvalue = run.eval_f[end]+1
 		finalEval = run.eval_nb[end]
 		
 		if i==1
@@ -240,30 +271,63 @@ function ObjectifFinalValue()
 	xscale = scales[1]
 	yscale = scales[1]
 	Label=["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
-	Title = "final value"#, dimension = "*string(runs[1].dim)
 	p = plot() 
-	p = plot!(p,finalValueEClassic,finalValueFClassic,seriestype=:scatter, color = colors[1], label = Label[1])#,xaxis=xscale, yaxis=yscale)
+	p = plot!(p,finalValueEClassic,finalValueFClassic,seriestype=:scatter, color = colors[1], label = Label[1], xaxis=xscale, yaxis=yscale)
 
-	p = plot!(p,finalValueEMulti,finalValueFMulti,seriestype=:scatter, color = colors[2], label = Label[2])#,xaxis=xscale, yaxis=yscale,)
+	p = plot!(p,finalValueEMulti,finalValueFMulti,seriestype=:scatter, color = colors[2], label = Label[2], xaxis=xscale, yaxis=yscale)
 
-	p = plot!(p,finalValueEOignon,finalValueFOignon,seriestype=:scatter, color = colors[3], label = Label[3])#,xaxis=xscale, yaxis=yscale,)
+	p = plot!(p,finalValueEOignon,finalValueFOignon,seriestype=:scatter, color = colors[3], label = Label[3],xaxis=xscale, yaxis=yscale)
 
-	p = plot!(p,finalValueEEnriched,finalValueFEnriched,seriestype=:scatter, color = colors[4], label = Label[4])#,xaxis=xscale, yaxis=yscale,)
+	p = plot!(p,finalValueEEnriched,finalValueFEnriched,seriestype=:scatter, color = colors[4], label = Label[4], xaxis=xscale, yaxis=yscale)
+	
+	Title = " dimension $(dim)"#, dimension = "*string(runs[1].dim)
 	title!(Title)
-	xlabel!("nbEval/(2*dim*nb2nBlock) when stopping criterion is reached")
-	ylabel!("f value when stopping criterion is reached")
-	savefig("ObjectifFinalValue.png")
 
-	return p
+	xlabel!("nbEval when stopping criterion is reached")
+	ylabel!("f value when stopping criterion is reached")
+
+	println("saving in ../Plots")
+
+	cd("../plots")
+	savefig(p,"ObjectifFinalValue_$(dim).pdf")
+	cd("../src")
+	
+	println("done")
+
 	
 end
 
-function MeanFinalStats()
-	runs = ExtractData(dir0)
+
+function PlotObjectifFinalValue()
+	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
+	println("extracting data from $(dir0)")
+	runsPbTest = ExtractData(dir0);
+	println("done")
+
+	for n in [2 4 8 16 32 64]
+		ObjectifFinalValue(n, runsPbTest)
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+function MeanFinalStats( dim::Int64, allRuns::Array{Run_t,1})
+	runs = FilterRuns("DIM", dim, allRuns)
 	#normalizedRuns = NormalizeRun(runs)
-	Fvalue = [0.0 0.0 0.0 0.0]
-	finalEval = [0.0 0.0 0.0 0.0]
-	strategyCounter = [0.0 0.0 0.0 0.0]
+	Fvalue = [0.0 0.0 0.0 0.0 0.0]
+	finalEval = [0.0 0.0 0.0 0.0 0.0]
+	strategyCounter = [0.0 0.0 0.0 0.0 0.0]
 	for run in runs
 		strategyCounter[run.poll_strategy] +=1
 	end
@@ -273,12 +337,12 @@ function MeanFinalStats()
 		finalEval[i] += run.eval_nb[end]/strategyCounter[i]
 	end
 
-	colors = [:black, :blue, :red, :yellow] #classic poll, multi poll, oignon poll, enriched poll
+	colors = [:black, :blue, :red, :yellow, :green] #classic poll, multi poll, oignon poll, enriched poll
 	scales = [:log, :linear]
 	xscale = scales[1]
 	yscale = scales[1]
-	Label=["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll"]
-	Title = "Mean values"
+	Label=["Classical Poll" "Multi Poll" "Oignon Poll" "Enriched Poll" "LHS"]
+	Title = "Mean values dimension $(dim)"
 
 	p = plot()
 	for i = 1:4
@@ -289,15 +353,50 @@ function MeanFinalStats()
 	title!(Title)
 	xlabel!("mean nbEval/(2*dim*nb2nBlock) when stopping criterion is reached")
 	ylabel!("mean f value when stopping criterion is reached")
+
+	println("saving in ../Plots")
+
+	cd("../plots")
+	savefig(p,"meanObjectifFinalValue_$(dim).pdf")
+	cd("../src")
+	
+	println("done")
+
 end
 
-function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
+function PlotMeanObjectifFinalValue()
+	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
+	println("extracting data from $(dir0)")
+	runsPbTest = ExtractData(dir0);
+	println("done")
+
+	for n in [2 4 8 16 32 64]
+		MeanFinalStats(n, runsPbTest)
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool, allRuns::Array{Run_t,1} ) #plots f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks can be set 
 	#to see the effect of this increase in the number of point at each poll step
 	colors = [:black, :blue, :red, :yellow, :green]
 
-	runs = ExtractData(dir0);
-	runs = FilterRuns("DIM",dim,runs)
+	runs = FilterRuns("DIM",dim,allRuns)
 
 	#runs = FilterRuns("PB_SEED",3,runs)
 	#runs = ExcludeProblems([1, 2, 5, 10, 11, 12, 13, 14], runs)
@@ -338,6 +437,22 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool) #plots f*
 	cd("../src")
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1})#plots the mean f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks is increasing
 	#to see the effect of this increase in the number of point at each poll step
@@ -354,16 +469,17 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	if useLogScale
 		runs = NormalizeRun(runs)
 	end
+
 	maxNb2nBlock = 0 # maximum number of 2n block used (usally for the multi poll)
+	nbPollStrategies = 5 #number of poll strategies that were tested
+	
 	for run in runs
 		if run.nb_2n_blocks>maxNb2nBlock
 			maxNb2nBlock = run.nb_2n_blocks
 		end
 	end
 
-	nbPollStrategies = 5
-
-	RunsCounter = zeros(maxNb2nBlock, nbPollStrategies) #counts the number of runs made with the i-th strategy (columns) on specific nb2nBlock (lines)
+	RunsCounter = zeros(maxNb2nBlock, nbPollStrategies)
 	maxFvalue = zeros(maxNb2nBlock, nbPollStrategies)
 	minFvalue = zeros(maxNb2nBlock, nbPollStrategies)
 	for i in 1:maxNb2nBlock
@@ -386,6 +502,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 			minFvalue[i,j] = Fval
 		end
 	end
+
 	println("\n run counter[i,j] = the number of runs made with i 2nblocks and poll strategy j")
 	println(RunsCounter)
 
@@ -415,24 +532,20 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	println("\n sFvalue[i,j]=standard deviation of f* on the runs made with  i 2nblocks and poll strategy j")
 	println(sFvalue)
 
-	if dim<=8
-		maxgrad=3
-	else
-		maxgrad=6
-	end 
-	
-	graduations = [2^n for n in 1:maxgrad]
-
-	println("Plotting...")
+	println("\n Plotting...")
 	p = plot(dpi=300)
-	colors = [:black, :blue, :red, :yellow, :green]
+
+
 	markers = [:circle, :square, :utriangle, :dtriangle]
+	msize = 3
+	mcontour = 0.2
+
+	colors = [:black, :blue, :red, :yellow, :green]
 	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
 	legendPos = :topright
 	Xgrad = :log2
 	Ygrad = :log10
-	msize = 3
-	mcontour = 0.2
+
 
 
 	#for run in runs 
@@ -460,7 +573,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 		end
 	end
 
-	Title = "dimension = $(dim)"
+	Title = "dimension $(dim)"
 	title!(Title)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
@@ -468,16 +581,63 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	println("saving in ../Plots")
 
 	cd("../plots")
-	savefig(p,"mean_$(dim).svg")
+	savefig(p,"mean_$(dim).tex")
 	cd("../src")
-	#isplay(p)
 	println("done")
 end
 
 function PlotMeanFinalValue()
+	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
+	println("extracting data from $(dir0)")
 	runsPbTest = ExtractData(dir0);
-	for i in [2 4 8 16 32 64]
-		MeanPerformanceOfIncreasingNbOfPoint(i, true,runsPbTest)
+	println("done")
+
+	for dim in [2 4 8 16 32 64]
+		MeanPerformanceOfIncreasingNbOfPoint(dim, true,runsPbTest)
 	end
 end
 
+
+
+
+
+function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1})
+	runs = FilterRuns("DIM",dim,allRuns)
+	allIterations = BuildAllIterations(runs)
+
+	colors = [:black, :blue, :red, :yellow, :green]
+
+	p = plot()
+	for iterations in allIterations
+		i = iterations.run.poll_strategy
+		p = plot!(p, 1:iterations.nb_iter, iterations.f_k,color = colors[i] ,xaxis=:log, yaxis=:log, leg = false,linetype=:steppre)
+	end
+
+	Title = "dimension $(dim)"
+	title!(Title)
+	xlabel!("iteration")
+	ylabel!("f(x^k)")
+
+	println("saving in ../Plots")
+
+	cd("../plots")
+	savefig(p,"evolution_per_iteration_$(dim).pdf")
+	cd("../src")
+	println("done")
+
+end
+
+
+
+function PlotObjectifEvolutionPerIteration()
+	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
+	println("extracting data from $(dir0)")
+	runsPbTest = ExtractData(dir0);
+	println("done")
+
+	for dim in [2 ]#4 8 16 32 64]
+		ObjectifEvolutionPerIteration(dim, true,runsPbTest)
+	end
+end

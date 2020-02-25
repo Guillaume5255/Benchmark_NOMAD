@@ -1,10 +1,10 @@
 using DelimitedFiles
 using Plots
-pgfplots()
+#pgfplots()
 using LaTeXStrings
 
 #using Plots
-#gr()
+gr()
 
 #using Plots
 #gadfly()
