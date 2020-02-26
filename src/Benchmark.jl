@@ -15,7 +15,7 @@ mutable struct Run_t
 	pb_seed::Int64
 	poll_strategy::Int64
 	nb_2n_blocks::Int64
-	eval_nb::Array{Float64,1}
+	eval_nb::Array{Int64,1}
 	eval_f::Array{Float64,1}
 	eval_time::Array{Float64,1}
 end
@@ -62,7 +62,7 @@ function ExtractData(dir::String)
 		runAttr=split(runName, "_")
 		if runAttr[1]=="run" #&& parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
 			runData = readdlm(dir*"/"*runName)
-			if runAttr[3] == 25
+			if runAttr[3] == "25"
 				run=Run_t(
 				parse(Int,runAttr[2]),
 				parse(Int,runAttr[3]),
@@ -92,13 +92,18 @@ function ExtractData(dir::String)
 end
 
 function BuildIteration(run::Run_t) # the output object is similar to the run object except it contains a field that is the number of iterations made during the corresponding run and the value of f at each of these iterations
-	nbIter = floor(run.eval_nb[end]/(run.nb_2n_blocks*2*run.dim))
-	iterationSuccess = []
 	nbPointsPerIter = run.nb_2n_blocks*2*run.dim
-	for k in 0:(nbIter-1)
-		fbest = run.eval_f[1]
-		for i in size(run.eval_f)[1]
-			if (run.eval_nb[i] >= k*run.nb_2n_blocks*2*run.dim) && (run.eval_nb[i]<(k+1)*run.nb_2n_blocks*2*run.dim)
+
+	nbIter = div(run.eval_nb[end],nbPointsPerIter)
+	iterationSuccess = [run.eval_f[1]]
+	for k in 1:(nbIter) #for each iteration we want to find the best value of f returned
+		fbest = iterationSuccess[k]
+		#println("OK $(k)")
+
+		for i in 1:size(run.eval_nb)[1]
+			evalIter = div(run.eval_nb[i],nbPointsPerIter)
+			if evalIter == k #we only look at evaluations which number correspond to the currert iteration k
+				#println("OK")
 				if fbest > run.eval_f[i]
 					fbest = run.eval_f[i]
 				end
@@ -106,7 +111,11 @@ function BuildIteration(run::Run_t) # the output object is similar to the run ob
 		end
 		push!(iterationSuccess,fbest)
 	end
+	#println(iterationSuccess)
+	#println(size(iterationSuccess))
+	#println(nbIter)
 	iteration = Iter_t(run, iterationSuccess, nbIter)
+	
 	return iteration 
 end
 
@@ -124,6 +133,24 @@ function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
 		addRun = true 
 		for pn in pbNum
 			if run.pb_num == pn 
+				addRun = false
+				break
+			end
+		end
+		if addRun
+			push!(newRuns, run)
+		end
+	end
+	return newRuns
+end
+
+function ExcludePollStrategies(pollStrategies::Array{Int64,1},runs::Array{Run_t,1})
+	newRuns = Array{Run_t,1}([])
+
+	for run in runs
+		addRun = true 
+		for ps in pollStrategies
+			if run.poll_strategy == ps 
 				addRun = false
 				break
 			end
@@ -176,7 +203,7 @@ end
 
 function NormalizeRun(runs::Array{Run_t,1})
 	for run in runs
-		fmax = run.eval_f[1]
+		#fmax = run.eval_f[1]
 		for i in 1:size(run.eval_f)[1]
 			run.eval_f[i] = run.eval_f[i]+1
 			#run.eval_nb[i] = run.eval_nb[i]/(run.nb_2n_blocks*2*run.dim)
@@ -577,12 +604,12 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	title!(Title)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
+	filename = "../plots/mean-final-value"
+	println("saving in $(filename)")
 
-	println("saving in ../Plots")
-
-	cd("../plots")
+	cd(filename)
 	savefig(p,"mean_$(dim).tex")
-	cd("../src")
+	cd("../../src/")
 	println("done")
 end
 
@@ -602,28 +629,37 @@ end
 
 
 
-function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1})
+function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1}, nb2nBlock::Int64)
 	runs = FilterRuns("DIM",dim,allRuns)
 	allIterations = BuildAllIterations(runs)
 
 	colors = [:black, :blue, :red, :yellow, :green]
 
 	p = plot()
+	println("plotting")
 	for iterations in allIterations
 		i = iterations.run.poll_strategy
-		p = plot!(p, 1:iterations.nb_iter, iterations.f_k,color = colors[i] ,xaxis=:log, yaxis=:log, leg = false,linetype=:steppre)
+		#if iterations.nb_iter != size(iterations.f_k
+		#	Display(iterations.run)
+		#end
+		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[i] ,xaxis=:log, yaxis=:log, leg = false,linetype=:steppre)
 	end
+	println("done")
 
-	Title = "dimension $(dim)"
+
+	Title = "dimension $(dim), nb2nBlock = $(nb2nBlock)"
 	title!(Title)
 	xlabel!("iteration")
 	ylabel!("f(x^k)")
 
-	println("saving in ../Plots")
 
-	cd("../plots")
-	savefig(p,"evolution_per_iteration_$(dim).pdf")
-	cd("../src")
+	filename = "../plots/evloution-per-iteration"
+	println("saving in $(filename)")
+
+	cd(filename)
+	savefig(p,"evolution_per_iteration_dim_$(dim)_nb2nBlock_$(nb2nBlock).png")
+	cd("../../src")
+
 	println("done")
 
 end
@@ -637,7 +673,24 @@ function PlotObjectifEvolutionPerIteration()
 	runsPbTest = ExtractData(dir0);
 	println("done")
 
-	for dim in [2 ]#4 8 16 32 64]
-		ObjectifEvolutionPerIteration(dim, true,runsPbTest)
+	#runsPbTest = FilterRuns("PB_NUM",7,runsPbTest)
+	runsPbTest=ExcludeProblems([n for n in 1:14], runsPbTest)
+
+	println("excluding LHS strategie (no iteration there)")
+	runsPbTest = ExcludePollStrategies([5], runsPbTest)
+	println("done")
+
+	println("normalize")
+	runsPbTest = NormalizeRun(runsPbTest)
+	println("done")
+
+
+	for nb2nBlock in [1 2 3 4 5 6 7 8 9 16 17 32 64 65 128 129]
+		runsPbTestPerNbPt = FilterRuns("NB_2N_BLOCK", nb2nBlock, runsPbTest)
+		for dim in [2 4 8 16 32 64]
+			ObjectifEvolutionPerIteration(dim, true, runsPbTestPerNbPt,nb2nBlock )
+		end
 	end
 end
+
+##TODO : perfomance profile en temps et par iteration
