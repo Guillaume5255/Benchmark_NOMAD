@@ -5,215 +5,22 @@
 #the entries of the matrix are generated with a random seed that can be changed : changing the seed change the problem 
 #the starting point can also be changed, but for the momet, it is arbitrarly fixed to (-4,...-4)
 
+using Plots
+#pgfplots()
+gr()
+#gadfly()
+#pyplot()
+
+using LaTeXStrings
+
+
+include("helperFunctions.jl")
+
+
+
 
 #first goal of this benchmark : is it effeicient to do more poll evaluation ? 
 #								which sampling strategy has the best performance in term of finding a local minima ? ==> compute the ratio nb times we do the poll/number of time we find a success
-
-mutable struct Run_t
-	dim::Int64
-	pb_num::Int64
-	pb_seed::Int64
-	poll_strategy::Int64
-	nb_2n_blocks::Int64
-	eval_nb::Array{Int64,1}
-	eval_f::Array{Float64,1}
-	eval_time::Array{Float64,1}
-end
-
-mutable struct Iter_t
-	run::Run_t
-	f_k::Array{Float64,1} #array with as much elements as the number of iterations, element k is the best value of f obtainted at iteration k
-	nb_iter::Int64 
-end
-
-
-function Display(run::Run_t)
-	str = "$(run.dim)_$(run.pb_num)_$(run.pb_seed)_$(run.poll_strategy)_$(run.nb_2n_blocks)"
-	println(str)
-end
-
-
-function FindEmptyRun(dir::String)
-	runs = ExtractData(dir)
-	for run in runs
-		if run.eval_f == []
-			Display(run)
-		end
-	end
-end
-
-
-function ExtractData(dir::String) 
-	#fills an array of Run_t objects, each object contains the data of the run : 
-	#wich dimension, which problem, which seed, which strategy, which number of 2n blocks
-	#all files are of the format run_dim_pbNumber_pbSeed_pollStrategy_nbOf2nBlocks_.txt
-	# all problems are scalable (dim \in N^*)
-	#there are 24 problems (pbNumber \in [[1;24]])
-	#pbSeed \in N
-	#pollStrategy \in [[1;4]] 
-	#	1:classic poll
-	#	2:multi poll
-	#	3:oignon poll
-	#	4:enriched poll
-	runsList = readdir(dir)
-	runs = Array{Run_t,1}([])
-	for runName in runsList
-		#println(runName)
-		runAttr=split(runName, "_")
-		if runAttr[1]=="run" #&& parse(Int,runAttr[5]) <5 #we only try to read run files, second condition to remove if we want the random search
-			runData = readdlm(dir*"/"*runName)
-			if runAttr[3] == "25"
-				run=Run_t(
-				parse(Int,runAttr[2]),
-				parse(Int,runAttr[3]),
-				parse(Int,runAttr[4]),
-				parse(Int,runAttr[5]),
-				parse(Int,runAttr[6]),
-				runData[:,1],
-				runData[:,3],
-				runData[:,2])
-			else
-				run=Run_t(
-				parse(Int,runAttr[2]),
-				parse(Int,runAttr[3]),
-				parse(Int,runAttr[4]),
-				parse(Int,runAttr[5]),
-				parse(Int,runAttr[6]),
-				runData[:,1],
-				runData[:,2],
-				runData[:,3])
-			end
-			#println("minimum f value : "*string(minimum(run.eval_f)))
-			#println("run_"*string(run.pb_num)*"_"*string(run.pb_seed)*"_"*string(run.poll_strategy))
-			push!(runs, run)
-		end
-	end
-	return runs
-end
-
-function BuildIteration(run::Run_t) # the output object is similar to the run object except it contains a field that is the number of iterations made during the corresponding run and the value of f at each of these iterations
-	nbPointsPerIter = run.nb_2n_blocks*2*run.dim
-
-	nbIter = div(run.eval_nb[end],nbPointsPerIter)
-	iterationSuccess = [run.eval_f[1]]
-	for k in 1:(nbIter) #for each iteration we want to find the best value of f returned
-		fbest = iterationSuccess[k]
-		#println("OK $(k)")
-
-		for i in 1:size(run.eval_nb)[1]
-			evalIter = div(run.eval_nb[i],nbPointsPerIter)
-			if evalIter == k #we only look at evaluations which number correspond to the currert iteration k
-				#println("OK")
-				if fbest > run.eval_f[i]
-					fbest = run.eval_f[i]
-				end
-			end
-		end
-		push!(iterationSuccess,fbest)
-	end
-	#println(iterationSuccess)
-	#println(size(iterationSuccess))
-	#println(nbIter)
-	iteration = Iter_t(run, iterationSuccess, nbIter)
-	
-	return iteration 
-end
-
-function BuildAllIterations(allRuns::Array{Run_t,1}) 
-	allIterations = [BuildIteration(run) for run in allRuns]
-	return allIterations
-end
-
-
-
-function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
-	newRuns = Array{Run_t,1}([])
-
-	for run in runs
-		addRun = true 
-		for pn in pbNum
-			if run.pb_num == pn 
-				addRun = false
-				break
-			end
-		end
-		if addRun
-			push!(newRuns, run)
-		end
-	end
-	return newRuns
-end
-
-function ExcludePollStrategies(pollStrategies::Array{Int64,1},runs::Array{Run_t,1})
-	newRuns = Array{Run_t,1}([])
-
-	for run in runs
-		addRun = true 
-		for ps in pollStrategies
-			if run.poll_strategy == ps 
-				addRun = false
-				break
-			end
-		end
-		if addRun
-			push!(newRuns, run)
-		end
-	end
-	return newRuns
-end
-
-function FilterRuns(att::String, value::Int64, runs::Array{Run_t,1})
-	newRuns = Array{Run_t,1}([])
-	if att == "DIM"
-		for run in runs
-			if run.dim == value
-				push!(newRuns, run)
-			end
-		end
-	elseif att == "PB_NUM"
-		for run in runs
-			if run.pb_num >= value
-				push!(newRuns, run)
-			end
-		end
-	elseif att == "PB_SEED"
-		for run in runs
-			if run.pb_seed == value
-				push!(newRuns, run)
-			end
-		end
-	elseif att == "POLL_STRATEGY"
-		for run in runs
-			if run.poll_strategy == value
-				push!(newRuns, run)
-			end
-		end
-	elseif att == "NB_2N_BLOCK"
-		for run in runs
-			if run.nb_2n_blocks == value
-				push!(newRuns, run)
-			end
-		end
-	else 
-		println("attribute $attr unknown, returning not filtered runs")
-		return runs
-	end
-	return newRuns
-end
-
-function NormalizeRun(runs::Array{Run_t,1})
-	for run in runs
-		#fmax = run.eval_f[1]
-		for i in 1:size(run.eval_f)[1]
-			run.eval_f[i] = run.eval_f[i]+1
-			#run.eval_nb[i] = run.eval_nb[i]/(run.nb_2n_blocks*2*run.dim)
-		end
-	end
-	return runs
-end
-
-
-
 
 function ObjectifEvolution(dir::String)
 	#plots the decreasing of the objective function according to the number of evaluation
@@ -236,12 +43,6 @@ function ObjectifEvolution(dir::String)
 	savefig("objectifEvolution.png")
 	return allplots[j]
 end
-
-
-
-
-
-
 
 
 
@@ -409,15 +210,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
 function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool, allRuns::Array{Run_t,1} ) #plots f*(y axis) according to the strategy used (color) and the number of positive basis used in the poll strategy (x axis) 
 	#to run with one strategy where the number of 2n blocks can be set 
 	#to see the effect of this increase in the number of point at each poll step
@@ -463,16 +255,6 @@ function PerformanceOfIncreasingNbOfPoint(dim::Int, useLogScale::Bool, allRuns::
 	savefig("all_$(dim)")
 	cd("../src")
 end
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -634,15 +416,19 @@ function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Ar
 	allIterations = BuildAllIterations(runs)
 
 	colors = [:black, :blue, :red, :yellow, :green]
+	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
+	legendPos = :topright
+	
 
 	p = plot()
 	println("plotting")
 	for iterations in allIterations
-		i = iterations.run.poll_strategy
+		j = iterations.run.poll_strategy
 		#if iterations.nb_iter != size(iterations.f_k
 		#	Display(iterations.run)
 		#end
-		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[i] ,xaxis=:log, yaxis=:log, leg = false,linetype=:steppre)
+		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[j] ,xaxis=:identity, yaxis=:log, label = pollStr[j], legend=legendPos, linetype=:steppre)
+		pollStr[j] = ""
 	end
 	println("done")
 
@@ -674,7 +460,7 @@ function PlotObjectifEvolutionPerIteration()
 	println("done")
 
 	#runsPbTest = FilterRuns("PB_NUM",7,runsPbTest)
-	runsPbTest=ExcludeProblems([n for n in 1:14], runsPbTest)
+	#runsPbTest=ExcludeProblems([n for n in 1:14], runsPbTest)
 
 	println("excluding LHS strategie (no iteration there)")
 	runsPbTest = ExcludePollStrategies([5], runsPbTest)
@@ -685,7 +471,7 @@ function PlotObjectifEvolutionPerIteration()
 	println("done")
 
 
-	for nb2nBlock in [1 2 3 4 5 6 7 8 9 16 17 32 64 65 128 129]
+	for nb2nBlock in [1 2 3 4 5 6 7 8 9 16 17 32 33 64 65 128 129]
 		runsPbTestPerNbPt = FilterRuns("NB_2N_BLOCK", nb2nBlock, runsPbTest)
 		for dim in [2 4 8 16 32 64]
 			ObjectifEvolutionPerIteration(dim, true, runsPbTestPerNbPt,nb2nBlock )
@@ -693,4 +479,216 @@ function PlotObjectifEvolutionPerIteration()
 	end
 end
 
-##TODO : perfomance profile en temps et par iteration
+
+################################data profile and performance profile ######################################
+
+#there are 24 problems that has random components in their builds (not in their evaluations ! ), we have 5 different instances of each problems, maybe it's not relevant to look at all instances
+
+
+#we have two ways to compute tps : by looking to iterations and by looking to evaluations, the first one is useful in the case of a constant number of evaluaitons per iterations
+
+function tps_iter(tau::Float64, iterations::Iter_t)# returns the amount of computation time or the number of iterations to satisfy the convergence test : f(x_0)-f(x)>= (1-tau)(f(x_0)-f_L))
+												#here we know that all problems can reach 0 as minimum, so we take f_L = 0
+	f_L = 0.0 #to compute explicitely if we do not use the set of problems that all reach 0
+	fx_0 = iterations.f_k[1]
+	for i in 1:size(iterations.f_k)[1]
+		fx =  iterations.f_k[i]
+		if fx_0-fx >= (1-tau)*(fx_0-f_L)
+			return i 
+		end
+	end
+end
+
+function tps(tau::Float64, run::Run_t, attr::String)
+	f_L = 0.0 #to compute explicitely if we do not use the set of problems that all reach 0
+	fx_0 = run.eval_f[1]
+
+	if attr == "EVAL"
+		for i in 1:size(run.eval_f)[1]
+			fx =  run.eval_f[i]
+			if fx_0-fx >= (1-tau)*(fx_0-f_L)
+				return run.eval_nb[i]	#if we want to do profile in term of eval we return the first eval number where f satisfies the convergence test
+			end
+		end
+
+	elseif attr == "TIME"
+		for i in 1:size(run.eval_f)[1]
+			fx =  run.eval_f[i]
+			if fx_0-fx >= (1-tau)*(fx_0-f_L)
+				return run.eval_time[i] # if we want to do profile in term of computation time we return the first time corresponding to f satisfying he convergence test
+			end
+		end
+
+	elseif attr == "ITER"
+		iterations = BuildIteration(run)
+		for i in 1:size(iterations.f_k)[1]
+			fx =  iterations.f_k[i]
+			if fx_0-fx >= (1-tau)*(fx_0-f_L)
+				return i 
+			end
+		end
+	end
+
+	return Inf
+
+end
+
+#the set of solvers will be classic poll, multi poll and for oignon and enriched poll, we will work with Nb2nBlock that seems the best according to plots given by PlotMeanFinalValue()
+
+function prepareRunsForProfiles()
+	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+
+	println("extracting data from $(dir0)")
+	runsPbTest = ExtractData(dir0);
+	println("done")
+
+	#runsPbTest = FilterRuns("PB_NUM",7,runsPbTest)
+	#runsPbTest=ExcludeProblems([n for n in 1:14], runsPbTest)
+
+	println("excluding LHS strategie (no iteration there)")
+	runsPbTest = ExcludePollStrategies([5], runsPbTest)
+	println("done")
+
+	runsPbTest = FilterRuns("PB_SEED", 0, runsPbTest)
+
+	runsPbTestAllDimClassic = FilterRuns("POLL_STRATEGY", 1, runsPbTest)
+
+	runsPbTestAllDimMulti = FilterRuns("POLL_STRATEGY", 2, runsPbTest)
+
+
+
+	allRunsPbTestDim2 = FilterRuns("DIM",2,runsPbTest)
+	runsPbTestDim2Filtered = [FilterRuns("NB_2N_BLOCK", 7, allRunsPbTestDim2);FilterRuns("DIM",2,runsPbTestAllDimClassic);FilterRuns("DIM",2,runsPbTestAllDimMulti)]
+						#be careful when changing this  ^  for example, here if 7 is remplaced by 5 the result given by Filter run will include part of this   ^
+	allRunsPbTestDim4 = FilterRuns("DIM",4,runsPbTest)
+	runsPbTestDim4Filtered = [FilterRuns("NB_2N_BLOCK", 5, allRunsPbTestDim4);FilterRuns("DIM",4,runsPbTestAllDimClassic);FilterRuns("DIM",4,runsPbTestAllDimMulti)]
+
+	allRunsPbTestDim8 = FilterRuns("DIM",8,runsPbTest)
+	runsPbTestDim8Filtered = [FilterRuns("NB_2N_BLOCK", 6, allRunsPbTestDim8);FilterRuns("DIM",8,runsPbTestAllDimClassic);FilterRuns("DIM",8,runsPbTestAllDimMulti)]
+
+	allRunsPbTestDim16 = FilterRuns("DIM",16,runsPbTest)
+	runsPbTestDim16Filtered = [FilterRuns("NB_2N_BLOCK", 64, allRunsPbTestDim16);FilterRuns("DIM",16,runsPbTestAllDimClassic);FilterRuns("DIM",16,runsPbTestAllDimMulti)]
+
+	allRunsPbTestDim32 = FilterRuns("DIM",32,runsPbTest)
+	runsPbTestDim32Filtered = [FilterRuns("NB_2N_BLOCK", 128, allRunsPbTestDim32);FilterRuns("DIM",32,runsPbTestAllDimClassic);FilterRuns("DIM",32,runsPbTestAllDimMulti)]
+
+	allRunsPbTestDim64 = FilterRuns("DIM",64,runsPbTest)
+	runsPbTestDim64Filtered = [FilterRuns("NB_2N_BLOCK", 16, allRunsPbTestDim64);FilterRuns("DIM",64,runsPbTestAllDimClassic);FilterRuns("DIM",64,runsPbTestAllDimMulti)]
+
+
+
+	return [runsPbTestDim2Filtered, runsPbTestDim4Filtered, runsPbTestDim8Filtered, runsPbTestDim16Filtered, runsPbTestDim32Filtered, runsPbTestDim64Filtered]
+end
+
+function tpsMatrix(tau::Float64, runs::Array{Run_t,1}, attr::String)
+	nbSolvers = 4 #find a way to automatically get these information from runs
+	nbProblems = 24
+	tps_matrix = zeros(nbProblems,nbSolvers)
+
+	for run in runs
+		p = run.pb_num
+		s = run.poll_strategy # one solver = one strategy (with number of 2nblocks fixed in preprocessing runs in prepareRunsForProfiles())
+		tps_matrix[p,s]=tps(tau, run, attr)
+	end
+	
+	return tps_matrix
+end
+
+function rpsMatrix(tps_matrix::Array{Float64,2})
+	nbProblems, nbSolveurs = size(tps_matrix)
+	rps_matrix = copy(tps_matrix)
+	for p in 1:nbProblems
+		minTps = minimum(tps_matrix[p,:])
+		rps_matrix[p,:] = rps_matrix[p,:]/minTps
+	end
+	return rps_matrix
+end
+
+function PerformanceProfile(alpha::Float64, s::Int64,rps_matrix::Array{Float64,2})
+	count = 0
+	nbProblems = size(rps_matrix)[1]
+	for p in 1:nbProblems
+		if rps_matrix[p,s] <= alpha
+			count = count+1
+		end
+	end
+
+	return count/nbProblems
+end
+
+
+function DataProfile(alpha::Float64, s::Int64, normalized_tps_matrix::Array{Float64,2})
+	#normalized_tps_matrix = tps_matrix/n+1
+	count = 0
+	nbProblems = size(normalized_tps_matrix)[1]
+	for p in 1:nbProblems
+		if normalized_tps_matrix[p,s] <= alpha
+			count = count+1
+		end
+	end
+
+	return count/nbProblems
+end
+
+function PlotProfile(attr::String, tau::Float64)
+	println("preprocessing runs")
+	groupsOfRuns = prepareRunsForProfiles()
+	println("done")
+	dims = [2, 4, 8, 16, 32, 64]
+
+	colors = [:black, :blue, :red, :yellow]
+	pollStr = ["Classique", "Multi", "Oignon", "Enrichie"]
+	
+	legendPos = :bottomright
+
+
+	for l in 1:size(dims)[1]
+		println(l)
+		tps_matrix = tpsMatrix(tau, groupsOfRuns[l],attr)
+		
+		normalized_tps_matrix = copy(tps_matrix)
+		normalized_tps_matrix = normalized_tps_matrix/(dims[l]+1)
+		rps_matrix = rpsMatrix(tps_matrix) 
+
+		alphaPP = 0.0:1.0:(1000*dims[l])
+		alphaDP = 0.0:1.0:(1000*dims[l])
+		PPplot = plot(dpi=300)
+		DPplot = plot(dpi=300)
+
+		Title = "dimension $(dims[l]), tau = $(tau)"
+
+		for s in 1:size(pollStr)[1]
+
+			PerformanceProfileValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
+			PerformanceProfileValue =  [DataProfile(alpha, s, normalized_tps_matrix) for alpha in alphaDP]
+
+			PPplot = plot!(PPplot,alphaPP, PerformanceProfileValue, color=colors[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+
+			DPplot = plot!(DPplot,alphaDP, PerformanceProfileValue, color=colors[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+
+		end
+
+		xlabel!(PPplot,"alpha")
+		xlabel!(DPplot,"alpha")
+
+		ylabel!(PPplot,"propostion de problemes resolus")
+		ylabel!(DPplot,"propostion de problemes resolus")
+
+
+		title!(PPplot,Title)
+		title!(DPplot,Title)
+
+
+
+		filename = "../plots/profiles"
+		println("saving in $(filename)")
+
+		cd(filename)
+		savefig(PPplot,"performance_profile_dim_$(dims[l])_tau_$(tau)_attr_$(attr).png")
+		savefig(DPplot,"data_profile_dim_$(dims[l])_tau_$(tau)_attr_$(attr).png")
+		cd("../../src")
+
+		println("done")
+
+	end
+end
