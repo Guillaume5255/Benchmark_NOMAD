@@ -53,6 +53,7 @@ int main ( int argc , char ** argv ) {
 
   int err = 0;
 
+<<<<<<< HEAD
   // verif. du nombre d'arguments :
   if (argc!=2 && argc!=9) {
     // cout << "\nargc != 2\n\n";
@@ -98,6 +99,54 @@ int main ( int argc , char ** argv ) {
    }
 
 
+=======
+  // verif. du nombre d'arguments : on prend en entrée un fichier contenant les points ou un liste des valeurs des points : ./styrene x.txt ou ./styrene x1 x2 x3 x4 x5 x6 x7 x8 
+  if (argc!=2) {
+    if (argc!= 9){
+      // cout << "\nargc != 2\n\n";
+      err = 1;
+      goto TERMINATE;
+    }
+    else
+    {
+      for (int i = 0; i<n; i++)
+        tmp[i]=atof(argv[i+1]);
+    }
+  }
+  else{
+    // lecture et scaling de x :
+    // -------------------------
+    in.open (argv[1]);
+
+    for ( i = 0 ; i < n ; i++ )
+      in >> tmp[i];
+
+    in.close();
+
+    if (in.fail()) {
+      // cout << "\nin.fail (1)\n\n";
+      err = 2;
+      goto TERMINATE;
+    }
+  }
+
+  //for ( i = 0 ; i < n ; i++ )
+  //  cout << "tmp[" << i << "] = " << tmp[i] << endl;
+  // cout << endl;
+
+  for ( i = 0 ; i < n ; i++ )
+    x[i] = (u[i]-l[i])*((double)tmp[i]/100.0) + l[i];
+  
+  //for ( i = 0 ; i < n ; i++ )
+  //  cout << "x[" << i << "] = " << x[i] << endl;
+
+  // verifs de x (j'ai pris ca dans checkup et c'est tout ce dont
+  // ca a besoin de checker ici) :
+  if ( x[6] < EPS || x[2] < 0 || x[2] > 1 || x[3] < 0 || x[3] > 1 ) {
+    err = 3;
+    goto TERMINATE;
+  }
+>>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
 
   // chemicals :
   // -----------
@@ -343,7 +392,12 @@ int main ( int argc , char ** argv ) {
     //        << "  f = " << f   << endl;
 
     
+<<<<<<< HEAD
     cout << g0  << " "
+=======
+    cout << f   << " "
+	 << g0  << " "
+>>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
 	 << g1  << " "
 	 << g2  << " "
 	 << g3  << " "
@@ -353,8 +407,13 @@ int main ( int argc , char ** argv ) {
 	 << g7  << " "
 	 << g8  << " "
 	 << g9  << " "
+<<<<<<< HEAD
 	 << g10 << " "
 	 << f   << endl;           // WITHOUT SCALING 
+=======
+	 << g10;
+	 //<< f;           // WITHOUT SCALING 
+>>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
          // << f / 1e7   << endl;  // WITH SCALING 
   }
 

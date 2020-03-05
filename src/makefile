@@ -15,6 +15,10 @@ INCLUDE_DIR	= $(BUILD_DIR)/include
 LIB_DIR		= $(BUILD_DIR)/lib
 BIN_DIR		= $(BUILD_DIR)/bin
 EXE			= $(BIN_DIR)/benchmark.exe
+ifndef BENCHMARKER_SOURCE
+BENCHMARKER_SOURCE = benchmark.cpp
+endif
+
 BENCHMARKER	= benchmarker.exe
 BENCHMARKER_SCRIPT = benchmarkJobs.sh
 
@@ -65,8 +69,8 @@ RUN_DIR		= ../run
 endif
 
 #$(LIB_DYNAMIC)	
-buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) benchmark.cpp buildBlackbox
-	$(COMPILE) -o $(RUN_DIR)/$(BENCHMARKER) benchmark.cpp $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
+buildBenchmarker: $(INCLUDE_DIR) $(OBJ_DIR) $(BENCHMARKER_SOURCE) buildBlackbox
+	$(COMPILE) -o $(RUN_DIR)/$(BENCHMARKER) $(BENCHMARKER_SOURCE) $(PB_DIR_NAME)/blackbox.o $(LIB_DYNAMIC)
 	
 buildBlackbox: $(PB_DIR_NAME)/blackbox.cpp $(PB_DIR_NAME)/blackbox.hpp
 	$(COMPILE_BB) -o $(PB_DIR_NAME)/blackbox.o $(PB_DIR_NAME)/blackbox.cpp

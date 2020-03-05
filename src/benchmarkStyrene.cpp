@@ -24,7 +24,7 @@ public:
 	{
 		bool eval_ok = false;
 		size_t n = x.size();
-		auto  cmd = "./problems/STYRENE/bb/truth.exe ";
+		std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe ";
 		for(size_t i = 0 ;i<n; i++){
 			cmd+=std::to_string(x[i].todouble())+" ";
 		}
@@ -33,26 +33,29 @@ public:
 		{
 			eval_ok = true;
 			std::array<char, 128> buffer;
-			std::string result;
+			std::string bbo="";
+			
 			auto startEval = omp_get_wtime();
-			std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+			std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);// we execute the commande and we store the result in pipe
 			auto stopEval = omp_get_wtime();
- 			if (!pipe) {
+ 			
+			if (!pipe) {
 				eval_ok = false;
 				throw std::runtime_error("popen() failed!");
 			}
+
 			while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-				result += buffer.data();
+				bbo += buffer.data();
 			}
 
 			evalTime += stopEval - startEval;
 
-			std::ostringstream strs;
-			strs << std::setprecision(10) << std::fixed << result <<" "<< evalTime;
-			std::string bbo = strs.str();//+" "+std::to_string(evalTime) ;
-
-			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
-
+			if (bbo[0]!='E'){
+				bbo = std::to_string(evalTime) +" "+ bbo;
+				x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
+			}
+			else 
+				eval_ok = false;
 		}
 		catch (std::exception &e)
 		{
@@ -61,7 +64,7 @@ public:
 			throw std::logic_error(err);
 		}
 		countEval = true;  // count a black-box evaluation
-		return eval_ok;	 // the evaluation succeeded
+		return eval_ok; // the evaluation succeeded
 	}
 	mutable double evalTime = 0.0;
 };
@@ -71,7 +74,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 {
 	// parameters creation
 	p.getPbParams()->setAttributeValue("DIMENSION", n);
-	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("EB EB EB EB PB PB PB PB PB PB PB OBJ EXTRA_O"));
+	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("EXTRA_O OBJ EB EB EB EB PB PB PB PB PB PB PB"));
 
 	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= -5
 	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 100.0)); // all var. <= 5
@@ -86,16 +89,16 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false);
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
-	//p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
+	p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000));
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",72); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11); // to set to 72 on CASIR and to set on 11 at GERAD
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
-	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",2);
-	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL OBJ"));
+	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",3);
+	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BBO"));
 
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
 
@@ -171,6 +174,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		break;
 	}
 	name = name + ".txt";
+
 	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" EVAL BBO"));
 
 
@@ -181,10 +185,11 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 
 	NOMAD::Point x0((size_t)dim); //getting starting point from the problem created in the evaluator
-	srand(pb_seed+2);//+2 becaus cf blackbox.cpp and the doc about srand(0) and srand(1)
-	for(int i = 0; i<dim ; i++)
-		x0[i] =  NOMAD::Double(((double)rand()/(double)RAND_MAX)*100);
-
+	//srand(pb_seed+2);//+2 becaus cf blackbox.cpp and the doc about srand(0) and srand(1)
+	//for(int i = 0; i<dim ; i++)
+	//	x0[i] =  NOMAD::Double(((double)rand()/(double)RAND_MAX)*100);
+	// in a first stand we only use one point as starting point, because they may be inefeasible, we need feasible points.
+	x0[0]=54.0; x0[1]=66.0; x0[2]=86.0; x0[3]=8.0; x0[4]=29; x0[5]=51; x0[6]=32; x0[7]=15;
 	params->getPbParams()->setAttributeValue("X0", x0);
 
 
