@@ -53,7 +53,7 @@ int main ( int argc , char ** argv ) {
 
   int err = 0;
 
-<<<<<<< HEAD
+
   // verif. du nombre d'arguments :
   if (argc!=2 && argc!=9) {
     // cout << "\nargc != 2\n\n";
@@ -98,8 +98,6 @@ int main ( int argc , char ** argv ) {
        goto TERMINATE;
    }
 
-
-=======
   // verif. du nombre d'arguments : on prend en entrée un fichier contenant les points ou un liste des valeurs des points : ./styrene x.txt ou ./styrene x1 x2 x3 x4 x5 x6 x7 x8 
   if (argc!=2) {
     if (argc!= 9){
@@ -146,7 +144,7 @@ int main ( int argc , char ** argv ) {
     err = 3;
     goto TERMINATE;
   }
->>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
+
 
   // chemicals :
   // -----------
@@ -302,7 +300,7 @@ int main ( int argc , char ** argv ) {
     mtot   = 0.0;
     for ( i = 0 ; i < nb_chem ; i++ ) {
       m = (ARRONDI) ? arrondi ( s[i_stream]->chem[i]->m , 4 ) : s[i_stream]->chem[i]->m;
-	
+
       if ( m > EPS ) {
 	mtot += m;
 	if ( m > max ) {
@@ -391,13 +389,9 @@ int main ( int argc , char ** argv ) {
     //        << "g10 = " << g10 << endl
     //        << "  f = " << f   << endl;
 
-    
-<<<<<<< HEAD
-    cout << g0  << " "
-=======
-    cout << f   << " "
+
+    cout << f/1e7   << " "
 	 << g0  << " "
->>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
 	 << g1  << " "
 	 << g2  << " "
 	 << g3  << " "
@@ -407,13 +401,8 @@ int main ( int argc , char ** argv ) {
 	 << g7  << " "
 	 << g8  << " "
 	 << g9  << " "
-<<<<<<< HEAD
-	 << g10 << " "
-	 << f   << endl;           // WITHOUT SCALING 
-=======
 	 << g10;
-	 //<< f;           // WITHOUT SCALING 
->>>>>>> d472fc7a50fb5d699449bf522f3b216f0066fd60
+
          // << f / 1e7   << endl;  // WITH SCALING 
   }
 

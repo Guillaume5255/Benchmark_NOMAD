@@ -28,10 +28,9 @@ public:
 		for(size_t i = 0 ;i<n; i++){
 			cmd+=std::to_string(x[i].todouble())+" ";
 		}
-
+		//cout<<cmd<<"\n";
 		try
 		{
-			eval_ok = true;
 			std::array<char, 128> buffer;
 			std::string bbo="";
 			
@@ -40,7 +39,6 @@ public:
 			auto stopEval = omp_get_wtime();
  			
 			if (!pipe) {
-				eval_ok = false;
 				throw std::runtime_error("popen() failed!");
 			}
 
@@ -49,13 +47,13 @@ public:
 			}
 
 			evalTime += stopEval - startEval;
-
+			
 			if (bbo[0]!='E'){
-				bbo = std::to_string(evalTime) +" "+ bbo;
+			//	cout<<"--"<<bbo<<"--\n";
+				bbo =  std::to_string(evalTime) +" "+ bbo; // be careful ! if the blackbox returns a \n or a space at the end of the output it mess up everything !
 				x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
+				eval_ok = true;
 			}
-			else 
-				eval_ok = false;
 		}
 		catch (std::exception &e)
 		{
@@ -93,11 +91,11 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",11); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",72); // to set to 72 on CASIR and to set on 11 at GERAD
 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
-	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",3);
+	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",2);
 	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BBO"));
 
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
@@ -189,7 +187,14 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 	//for(int i = 0; i<dim ; i++)
 	//	x0[i] =  NOMAD::Double(((double)rand()/(double)RAND_MAX)*100);
 	// in a first stand we only use one point as starting point, because they may be inefeasible, we need feasible points.
-	x0[0]=54.0; x0[1]=66.0; x0[2]=86.0; x0[3]=8.0; x0[4]=29; x0[5]=51; x0[6]=32; x0[7]=15;
+	x0[0]=54.0;
+	x0[1]=66.0;
+	x0[2]=86.0;
+	x0[3]=8.0;
+	x0[4]=29;
+	x0[5]=51;
+	x0[6]=32;
+	x0[7]=15;
 	params->getPbParams()->setAttributeValue("X0", x0);
 
 
