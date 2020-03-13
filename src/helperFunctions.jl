@@ -75,15 +75,17 @@ function BuildIteration(run::Run_t) # the output object is similar to the run ob
 		fbest = iterationSuccess[k]
 		#println("OK $(k)")
 
-		for i in 1:size(run.eval_nb)[1]
-			evalIter = div(run.eval_nb[i],nbPointsPerIter)
-			if evalIter == k #we only look at evaluations which number correspond to the currert iteration k
-				#println("OK")
-				if fbest > run.eval_f[i]
-					fbest = run.eval_f[i]
-				end
-			end
-		end
+		#for i in 1:size(run.eval_nb)[1]
+		#	evalIter = div(run.eval_nb[i],nbPointsPerIter)
+		#	if evalIter == k #we only look at evaluations which number correspond to the current iteration k
+		#		#println("OK")
+		#		if fbest > run.eval_f[i]
+		#			fbest = run.eval_f[i]
+		#		end
+		#	end
+		#end
+		for i in 1:nbPointsPerIter
+			
 		push!(iterationSuccess,fbest)
 	end
 	#println(iterationSuccess)

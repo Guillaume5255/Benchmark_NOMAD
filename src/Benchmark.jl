@@ -386,7 +386,9 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	title!(Title)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
-	filename = "../plots/mean-final-value"
+	filename = "../plots/pb-test/mean-final-value"
+	#filename = "../plots/pb-bb-styrene/mean-final-value"
+
 	println("saving in $(filename)")
 
 	cd(filename)
@@ -396,13 +398,13 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 end
 
 function PlotMeanFinalValue()
-	dir0 = "../run-pb-test" #"../run-pb-blackbox"
-
+	#dir0 = "../run-pb-test"
+	dir0 ="../run-pb-bb-styrene"
 	println("extracting data from $(dir0)")
 	runsPbTest = ExtractData(dir0);
 	println("done")
 
-	for dim in [2 4 8 16 32 64]
+	for dim in [8] #[2 4 8 16 32 64]
 		MeanPerformanceOfIncreasingNbOfPoint(dim, true,runsPbTest)
 	end
 end
@@ -420,14 +422,19 @@ function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Ar
 	legendPos = :topright
 	
 
-	p = plot()
+	p = plot(dpi=300)
 	println("plotting")
 	for iterations in allIterations
 		j = iterations.run.poll_strategy
 		#if iterations.nb_iter != size(iterations.f_k
 		#	Display(iterations.run)
 		#end
-		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[j] ,xaxis=:identity, yaxis=:log, label = pollStr[j], legend=legendPos, linetype=:steppre)
+		#to use with styrene : 
+		#T = 
+		#for i in size(T)[1]
+		#	T[i]=T[i]+4.0
+		#end
+		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[j] ,xaxis=:log10, yaxis=:identity, label = pollStr[j], legend=legendPos, linetype=:steppre)
 		pollStr[j] = ""
 	end
 	println("done")
@@ -439,12 +446,14 @@ function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Ar
 	ylabel!("f(x^k)")
 
 
-	filename = "../plots/evloution-per-iteration"
+	#filename = "../plots/pb-test/evloution-per-iteration"
+	filename = "../plots/pb-bb-styrene/evolution-per-iteration"
+
 	println("saving in $(filename)")
 
 	cd(filename)
 	savefig(p,"evolution_per_iteration_dim_$(dim)_nb2nBlock_$(nb2nBlock).png")
-	cd("../../src")
+	cd("../../../src")
 
 	println("done")
 
@@ -453,7 +462,8 @@ end
 
 
 function PlotObjectifEvolutionPerIteration()
-	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+	#dir0 = "../run-pb-test"
+	dir0 = "../run-pb-bb-styrene"
 
 	println("extracting data from $(dir0)")
 	runsPbTest = ExtractData(dir0);
@@ -471,9 +481,9 @@ function PlotObjectifEvolutionPerIteration()
 	println("done")
 
 
-	for nb2nBlock in [1 2 3 4 5 6 7 8 9 16 17 32 33 64 65 128 129]
+	for nb2nBlock in [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17]#[1 2 3 4 5 6 7 8 9 16 17 32 33 64 65 128 129]
 		runsPbTestPerNbPt = FilterRuns("NB_2N_BLOCK", nb2nBlock, runsPbTest)
-		for dim in [2 4 8 16 32 64]
+		for dim in [8]#[2 4 8 16 32 64]
 			ObjectifEvolutionPerIteration(dim, true, runsPbTestPerNbPt,nb2nBlock )
 		end
 	end
@@ -483,7 +493,6 @@ end
 ################################data profile and performance profile ######################################
 
 #there are 24 problems that has random components in their builds (not in their evaluations ! ), we have 5 different instances of each problems, maybe it's not relevant to look at all instances
-
 
 #we have two ways to compute tps : by looking to iterations and by looking to evaluations, the first one is useful in the case of a constant number of evaluaitons per iterations
 
@@ -536,7 +545,7 @@ end
 #the set of solvers will be classic poll, multi poll and for oignon and enriched poll, we will work with Nb2nBlock that seems the best according to plots given by PlotMeanFinalValue()
 
 function prepareRunsForProfiles()
-	dir0 = "../run-pb-test" #"../run-pb-blackbox"
+	dir0 = "../run-pb-test" #"../run-pb-bb"
 
 	println("extracting data from $(dir0)")
 	runsPbTest = ExtractData(dir0);
@@ -680,7 +689,8 @@ function PlotProfile(attr::String, tau::Float64)
 
 
 
-		filename = "../plots/profiles"
+		filename = "../plots/pb-test/profiles"
+		#filename = "../plots/pb-bb-styrene/profiles"
 		println("saving in $(filename)")
 
 		cd(filename)
