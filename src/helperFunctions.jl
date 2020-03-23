@@ -86,6 +86,7 @@ function BuildIteration(run::Run_t) # the output object is similar to the run ob
 		#end
 		for i in 1:nbPointsPerIter
 			
+		end
 		push!(iterationSuccess,fbest)
 	end
 	#println(iterationSuccess)

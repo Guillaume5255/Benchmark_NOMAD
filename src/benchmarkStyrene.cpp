@@ -39,7 +39,7 @@ public:
 			auto stopEval = omp_get_wtime();
  			
 			if (!pipe) {
-				throw std::runtime_error("popen() failed!");
+				throw std::runtime_error("popen() failed! : impossible to read blackbox output.");
 			}
 
 			while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
@@ -72,40 +72,39 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 {
 	// parameters creation
 	p.getPbParams()->setAttributeValue("DIMENSION", n);
+	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= 0
+	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 100.0)); // all var. <= 100
+	p.getPbParams()->setAttributeValue("MIN_MESH_SIZE",NOMAD::ArrayOfDouble(n, 0.00000001));
+
 	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("EXTRA_O OBJ EB EB EB EB PB PB PB PB PB PB PB"));
 
-	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= -5
-	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 100.0)); // all var. <= 5
-
-
-	// the algorithm terminates after 1000 black-box evaluations,
-	// or 2000 total evaluations, including cache hits and evalutions for
-	// which countEval was false.
-	int nbIter=500; // to change in optimize too
-	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",nbIter*(2*n)*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
-
+	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
+	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
 	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false);
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
+
+
+
+	size_t nbIter=500; // to change in optimize too
+	//p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL",nbIter*(2*n)*nb2nBlock);// NOMAD::INF_SIZE_T); //10 000 iterations
+
+	p.getRunParams()->setAttributeValue("MAX_ITERATIONS", (size_t)nbIter);
+	p.getRunParams()->setAttributeValue("MAX_ITERATION_PER_MEGAITERATION",1);
 	p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000));
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",72); // to set to 72 on CASIR and to set on 11 at GERAD
-
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",3); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
+	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
+	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
 	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",2);
 	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BBO"));
-
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
-
-
-	p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
-
-
+	p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE",false);
 	// parameters validation
 	p.checkAndComply();
 }
@@ -125,7 +124,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 
 
 	auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
-	int nbIter = 500; // to change in initParams too
+	int nbIter = 500; // to change in initParams too, here it is useful only for the LHS
 	switch (poll_strategy)
 	{
 	case 1:
@@ -208,8 +207,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 		try
 		{
 			std::cout<<"Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
-			if(nb_of_2n_block > 129)
-                		std::cout<<"what the fuck, nb2nblock = "<<nb_of_2n_block<<"\n";
+
 			auto start = omp_get_wtime();
 			// Algorithm creation and execution
 			TheMainStep->start();
@@ -240,17 +238,17 @@ int main (int argc, char **argv)
 {
 	bool useArgs = argc >1;
 
-	int DIM_MIN=8; // fixe pou sytrene
+	int DIM_MIN=8; // fixe pour sytrene
 	int PB_NUM_MIN=25; //we call styrene the 25th problem
 	int PB_SEED_MIN=0; // use the seed to change the sarting point
-	int POLL_STRATEGY_MIN=1;
-	int NB_2N_BLOCK_MIN=2;
+	int POLL_STRATEGY_MIN=3;
+	int NB_2N_BLOCK_MIN=32;
 
 	int DIM_MAX=9;
 	int PB_NUM_MAX=26;
 	int PB_SEED_MAX=1;
 	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=4;
+	int NB_2N_BLOCK_MAX=33;
 
 	if (useArgs){
 		//DIM_MIN = atoi(argv[1]);
@@ -275,7 +273,7 @@ int main (int argc, char **argv)
 					if(poll_strategy ==1 || poll_strategy == 2) //in the case of poll strategies 1 or 2 we can't set the number of 2n blocks of points
 						optimize(dim, pb_num, pb_seed, poll_strategy, 1+2*dim*(poll_strategy-1));
 					else{
-						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block++) //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
+						for(int nb_2n_block = NB_2N_BLOCK_MIN ; nb_2n_block < NB_2N_BLOCK_MAX ; nb_2n_block=2*nb_2n_block) //we increase the number of 2n blocks to see the effect on the optimization with poll strategies 3 and 4
 							optimize(dim, pb_num, pb_seed, poll_strategy, nb_2n_block);
 
 					}
