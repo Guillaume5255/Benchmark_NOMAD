@@ -10,8 +10,8 @@ int main(){
 	for(int i = 1; i< 25; i++){
 		Blackbox bb(n, i, seed);
 
-		double f=bb.f(x);
-		double g=bb.f(x);
+		string f=bb.f(x);
+		string g=bb.f(x);
 
 		bool isEqual = f==g;
 		if(!isEqual)
@@ -27,8 +27,8 @@ int main(){
 	for(int i = 1; i< 25; i++){
 
 		Blackbox bb1(n, i, seed), bb2(n, i, seed);
-		double f=bb1.f(x);
-		double g=bb2.f(x) ;
+		string f=bb1.f(x);
+		string g=bb2.f(x) ;
 
 		bool isEqual = f==g;
 
@@ -96,8 +96,8 @@ int main(){
 
 		Blackbox bb1(n, i, 1), bb2(n, i, 2);
 
-		double f=bb1.f(x);
-		double g=bb2.f(x) ;
+		string f=bb1.f(x);
+		string g=bb2.f(x) ;
 
 		bool isEqual = f==g;
 

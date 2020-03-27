@@ -10,7 +10,7 @@
 
 //#define _USE_MATH_DEFINES
 
-//#define _PARALLEL2
+//#define _PARALLEL2 //parallelism is useless on lightweight functions as analytic problems, it is even useless on nomad (NB_THREAD_OPENMP) for analytic problems 
 
 
 using namespace std;
@@ -21,12 +21,12 @@ public:
 	Blackbox(const int dim,const int functionNumber, const int instance);
 	~Blackbox(){};
 	
-	double f(std::vector<double> x) ;
+	string f(std::vector<double> x) ;
 	
-	void DisplayTheoricalOptimal();
+	void DisplayTheoricalOptimal();//only working for test problems
 	
 	std::vector<double> getX0(){return _x0;}
-	std::vector<double> getXopt();
+	std::vector<double> getXopt(); //only working for test problems
 
 private: //to comment when doing unit test 
 	const int _n,funcNum,pb_seed;	//dimension, problem number and seed for the generation of random matrix
@@ -62,7 +62,7 @@ private: //to comment when doing unit test
 	double Norm(std::vector<double> x);													//Euclidian norm
 	double Fpen(std::vector<double> x);													//Penalty to the objectif function
 
-	double blackbox(std::vector<double> x);												//Code for the blackboxes (f calls blackbox after checking that the input is of the good size)
+	string blackbox(std::vector<double> x);												//Code for the blackboxes (f calls blackbox after checking that the input is of the good size)
 	
 	void SetUpAngles();																	//set angles for the rotations
 	void SetUpRandomValue(int hi);														// set random values for pb 21 and 22
@@ -91,4 +91,7 @@ private: //to comment when doing unit test
 
 	double p23(std::vector<double> x);
 	double p24(std::vector<double> x);
+
+	//real blackboxes
+	string styrene(std::vector<double> x);
 };

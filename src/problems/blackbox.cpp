@@ -1,8 +1,8 @@
 #include "blackbox.hpp"
 
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), pb_seed(instance){
-	std::cout<<"\n building the blackbox : seed = "<<pb_seed <<"\n";
-	auto start = omp_get_wtime();
+	//std::cout<<"\n Building the blackbox : seed = "<<pb_seed <<"\n";
+	//auto start = omp_get_wtime();
 	srand(pb_seed+2);
 	_x0 = RandomDirection(5.0);
 	_xopt = RandomDirection(5.0);
@@ -93,11 +93,28 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 			ExternalProduct(u0/2,_xopt);
 			break;
 
+		case 25:
+			std::cout<< "seed has no effect on this problem\n";
+			if (_n != 8){ 
+				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this will not work.\n")
+			}
+			else{
+				_x0[0]=54.0;
+				_x0[1]=66.0;
+				_x0[2]=86.0;
+				_x0[3]=8.0;
+				_x0[4]=29;
+				_x0[5]=51;
+				_x0[6]=32;
+				_x0[7]=15;
+			}
+			break;
+
 		default:
 			break;
 	}
-	auto stop = omp_get_wtime();
-		std::cout<<"\n Done in "<<stop-start<<" s\n";
+	//auto stop = omp_get_wtime();
+		//std::cout<<"\n Done in "<<stop-start<<" s\n";
 }
 std::vector<double> Blackbox::getXopt(){
 	if (funcNum == 5 || funcNum == 20 || funcNum == 21 || funcNum == 22 || funcNum == 24)
@@ -331,21 +348,26 @@ void Blackbox::DisplayTheoricalOptimal(){
 		std::cout<<opt[i]<<"\t";
 	}
 	std::cout<<")";
+
+	//additional information
 	if(funcNum ==9 || funcNum ==19)
-	std::cout<<"\n /!\\ this value is not computed directly\n";
-	if(funcNum ==20)
-	std::cout<<"\n /!\\ do not return 0 because it is a value obtained by a solver\n";
-	std::cout<<"\n f(xopt) = "<< f(opt)<<"\n";
+		std::cout<<"\n /!\\ this value is not computed directly\n";
+	if(funcNum ==20){
+		std::cout<<"\n /!\\ do not return 0 because it is a value obtained by a solver\n";
+		std::cout<<"\n f(xopt) = "<< f(opt)<<"\n";
+	}
+	if (funcNum == 25)
+		std::cout<< "\n This is a real blackbox, xopt is the best value known \n";
 }
 
-double Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good dimension 
+string Blackbox::f(std::vector<double> x){ //wrapper to be sure x is of the good dimension 
 	//usleep(1000000);
 	if ((int)x.size() == _n)
 		return blackbox(x);
 	else
 	{
 		std::cout<<"x is of dimension "<< x.size() <<"but blackbox takes "<< _n <<" input parameters";
-		return -1.0;
+		return "Error : bad dimension";
 	}
 }
 
@@ -739,87 +761,115 @@ double Blackbox::p24(std::vector<double> x){
 	return std::min(sum1,d*_n+s*sum2)+10*(_n-sum3)+10000*Fpen(x) + _fopt;
 }
 
+string Blackbox::styrene(std::vector<double> x){
 
-double Blackbox::blackbox(std::vector<double> x) {
+	size_t dim = 8; // styrene is of dim 8
+	std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe ";
+	for(size_t i = 0 ;i<dim; i++){
+		cmd+=std::to_string(x[i])+" ";
+	}
+	std::array<char, 128> buffer;
+	std::string bbo="";
+
+	//auto startEval = omp_get_wtime();
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);// we execute the commande and we store the result in pipe
+	auto stopEval = omp_get_wtime();
+
+	if (!pipe) {
+		throw std::runtime_error("popen() failed! : impossible to read blackbox output.");
+	}
+
+	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+		bbo += buffer.data();
+	}
+	return bbo;
+}
+
+
+
+string Blackbox::blackbox(std::vector<double> x) {
 	switch (funcNum)
 	{
 	case 1:
-		return p1(x);
+		return std::to_string(p1(x));
 		break;
 	case 2:
-		return p2(x);
+		return std::to_string(p2(x));
 		break;
 	case 3:
-		return p3(x);
+		return std::to_string(p3(x));
 		break;
 	case 4:
-		return p4(x);
+		return std::to_string(p4(x));
 		break;
 	case 5:
-		return p5(x);
+		return std::to_string(p5(x));
 		break;
 	case 6:
-		return p6(x);
+		return std::to_string(p6(x));
 		break;
 	case 7:
-		return p7(x);
+		return std::to_string(p7(x));
 		break;
 	case 8:
-		return p8(x);
+		return std::to_string(p8(x));
 		break;
 	case 9:
-		return p9(x);
+		return std::to_string(p9(x));
 		break;
 	case 10:
-		return p10(x);
+		return std::to_string(p10(x));
 		break;
 	case 11:
-		return p11(x);
+		return std::to_string(p11(x));
 		break;
 	case 12:
-		return p12(x);
+		return std::to_string(p12(x));
 		break;
 	case 13:
-		return p13(x);
+		return std::to_string(p13(x));
 		break;
 	case 14:
-		return p14(x);
+		return std::to_string(p14(x));
 		break;
 	case 15:
-		return p15(x);
+		return std::to_string(p15(x));
 		break;
 	case 16:
-		return p16(x);
+		return std::to_string(p16(x));
 		break;
 	case 17:
-		return p17(x);
+		return std::to_string(p17(x));
 		break;
 	case 18:
-		return p17(x);//only the constant values set in the constructor are changing
+		return std::to_string(p17(x));//only the constant values set in the constructor are changing
 		break;
 	case 19:
-		return p19(x);
+		return std::to_string(p19(x));
 		break;
 	case 20:
-		return p20(x);
+		return std::to_string(p20(x));
 		break;
 	case 21:
-		return p21(x);
+		return std::to_string(p21(x));
 		break;
 	case 22:
-		return p21(x); //only the constant values set in the constructor are changing
+		return std::to_string(p21(x)); //only the constant values set in the constructor are changing
 		break;
 	case 23:
-		return p23(x);
+		return std::to_string(p23(x));
 		break;
 	case 24:
-		return p24(x);
+		return std::to_string(p24(x));
 		break;
+	case 25:
+		return styrene(x);
+		break;
+	
 // we can add call to external blackbox, like styrene with syscall
 	default:
 		std::cout<<"problem no "<< funcNum <<"not yet implemented.\n";
 		return -1.0;
 		break;
 	}
-
 }

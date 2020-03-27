@@ -34,7 +34,7 @@ public:
 			std::array<char, 128> buffer;
 			std::string bbo="";
 			
-			auto startEval = omp_get_wtime();
+			//auto startEval = omp_get_wtime();
 			std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);// we execute the commande and we store the result in pipe
 			auto stopEval = omp_get_wtime();
  			
@@ -45,12 +45,12 @@ public:
 			while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
 				bbo += buffer.data();
 			}
-
-			evalTime += stopEval - startEval;
+			
+			//evalTime += stopEval - startEval;
 			
 			if (bbo[0]!='E'){
 			//	cout<<"--"<<bbo<<"--\n";
-				bbo =  std::to_string(evalTime) +" "+ bbo; // be careful ! if the blackbox returns a \n or a space at the end of the output it mess up everything !
+				bbo =  std::to_string(stopEval-beginEvalTime) +" "+ bbo; // be careful ! if the blackbox returns a \n or a space at the end of the output it mess up everything !
 				x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 				eval_ok = true;
 			}
@@ -64,7 +64,7 @@ public:
 		countEval = true;  // count a black-box evaluation
 		return eval_ok; // the evaluation succeeded
 	}
-	mutable double evalTime = 0.0;
+	const double beginEvalTime = omp_get_wtime();
 };
 
 // Initialization of all parameters that do not change from one poll method to another
@@ -74,7 +74,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getPbParams()->setAttributeValue("DIMENSION", n);
 	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= 0
 	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 100.0)); // all var. <= 100
-	p.getPbParams()->setAttributeValue("MIN_MESH_SIZE",NOMAD::ArrayOfDouble(n, 0.00000001));
+	p.getPbParams()->setAttributeValue("MIN_MESH_SIZE",NOMAD::ArrayOfDouble(n, 0.0000000000001));
 
 	p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("EXTRA_O OBJ EB EB EB EB PB PB PB PB PB PB PB"));
 
@@ -102,7 +102,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int nb2nBlock )
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
 	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",2);
-	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BBO"));
+	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("ITER EVAL BBO"));
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
 	p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE",false);
 	// parameters validation
@@ -172,7 +172,7 @@ void optimize(int dim, int pb_num, int pb_seed,int poll_strategy, int nb_of_2n_b
 	}
 	name = name + ".txt";
 
-	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" EVAL BBO"));
+	params->getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" ITER EVAL BBO"));
 
 
 	// Custom evaluator creation
@@ -242,13 +242,13 @@ int main (int argc, char **argv)
 	int PB_NUM_MIN=25; //we call styrene the 25th problem
 	int PB_SEED_MIN=0; // use the seed to change the sarting point
 	int POLL_STRATEGY_MIN=3;
-	int NB_2N_BLOCK_MIN=32;
+	int NB_2N_BLOCK_MIN=2;
 
 	int DIM_MAX=9;
 	int PB_NUM_MAX=26;
 	int PB_SEED_MAX=1;
 	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=33;
+	int NB_2N_BLOCK_MAX=65;
 
 	if (useArgs){
 		//DIM_MIN = atoi(argv[1]);

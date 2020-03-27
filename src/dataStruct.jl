@@ -4,6 +4,7 @@ mutable struct Run_t
 	pb_seed::Int64
 	poll_strategy::Int64
 	nb_2n_blocks::Int64
+	iter::Array{Int64,1}
 	eval_nb::Array{Int64,1}
 	eval_f::Array{Float64,1}
 	eval_time::Array{Float64,1}

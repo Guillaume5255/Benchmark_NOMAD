@@ -14,7 +14,7 @@ OBJ_DIR		= $(BUILD_DIR)/obj
 INCLUDE_DIR	= $(BUILD_DIR)/include
 LIB_DIR		= $(BUILD_DIR)/lib
 BIN_DIR		= $(BUILD_DIR)/bin
-EXE			= $(BIN_DIR)/benchmark.exe
+#EXE			= $(BIN_DIR)/benchmark.exe
 ifndef BENCHMARKER_SOURCE
 BENCHMARKER_SOURCE = benchmark.cpp
 endif
