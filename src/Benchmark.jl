@@ -6,8 +6,8 @@
 #the starting point can also be changed, but for the momet, it is arbitrarly fixed to (-4,...-4)
 
 using Plots
-#pgfplots()
-gr()
+pgfplots()
+#gr()
 #gadfly()
 #pyplot()
 
@@ -353,7 +353,7 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
 	legendPos = :topright
 	Xgrad = :log2
-	Ygrad = :log10
+	Ygrad = :log2
 
 
 
@@ -386,26 +386,28 @@ function MeanPerformanceOfIncreasingNbOfPoint(dim::Int64,useLogScale::Bool, allR
 	title!(Title)
 	xlabel!("nombre de bases positives")
 	ylabel!("valeurs optimales moyennes")
-	filename = "../plots/pb-test/mean-final-value"
+	filename = "../plots/pb-test/static/mean-final-value-O-E"
+	#filename = "../plots/pb-test/dynamic/mean-final-value"
 	#filename = "../plots/pb-bb-styrene/mean-final-value"
 
 	println("saving in $(filename)")
 
 	cd(filename)
-	savefig(p,"mean_$(dim).tex")
-	cd("../../src/")
+	savefig(p,"mean_$(dim).svg")
+	cd("../../../../src/")
 	println("done")
 end
 
 function PlotMeanFinalValue()
 	#dir0 = "../run-pb-test"
 	#dir0 ="../run-pb-bb-styrene"
-	dir0="../run-pb-test"
+	#dir0 ="../run-pc-perso-confinement/run-pb-test-dynamic"
+	dir0="../run-pc-perso-confinement/run-pb-test-static"
 	println("extracting data from $(dir0)")
 	runsPbTest = ExtractData(dir0);
 	println("done")
 
-	for dim in [8] #[2 4 8 16 32 64]
+	for dim in [2 4 8 16 32 64]
 		MeanPerformanceOfIncreasingNbOfPoint(dim, true,runsPbTest)
 	end
 end
@@ -416,7 +418,7 @@ end
 
 function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1}, nb2nBlock::Int64)
 	runs = FilterRuns("DIM",dim,allRuns)
-	allIterations = BuildAllIterations(runs)
+	#allIterations = BuildAllIterations(runs)
 
 	colors = [:black, :blue, :red, :yellow, :green]
 	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
@@ -425,8 +427,8 @@ function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Ar
 
 	p = plot(dpi=300)
 	println("plotting")
-	for iterations in allIterations
-		j = iterations.run.poll_strategy
+	for run in runs
+		j = run.poll_strategy
 		#if iterations.nb_iter != size(iterations.f_k
 		#	Display(iterations.run)
 		#end
@@ -435,7 +437,7 @@ function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Ar
 		#for i in size(T)[1]
 		#	T[i]=T[i]+4.0
 		#end
-		p = plot!(p, 1:(iterations.nb_iter+1), iterations.f_k,color = colors[j] ,xaxis=:log10, yaxis=:identity, label = pollStr[j], legend=legendPos, linetype=:steppre)
+		p = plot!(p, run.iter, run.eval_f,color = colors[j] ,xaxis=:log10, yaxis=:identity, label = pollStr[j], legend=legendPos, linetype=:steppre)
 		pollStr[j] = ""
 	end
 	println("done")

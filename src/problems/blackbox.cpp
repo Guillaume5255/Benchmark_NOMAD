@@ -96,7 +96,7 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 		case 25:
 			std::cout<< "seed has no effect on this problem\n";
 			if (_n != 8){ 
-				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this will not work.\n")
+				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this will not work.\n");
 			}
 			else{
 				_x0[0]=54.0;
@@ -773,7 +773,7 @@ string Blackbox::styrene(std::vector<double> x){
 
 	//auto startEval = omp_get_wtime();
 	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);// we execute the commande and we store the result in pipe
-	auto stopEval = omp_get_wtime();
+	//auto stopEval = omp_get_wtime();
 
 	if (!pipe) {
 		throw std::runtime_error("popen() failed! : impossible to read blackbox output.");
@@ -869,7 +869,7 @@ string Blackbox::blackbox(std::vector<double> x) {
 // we can add call to external blackbox, like styrene with syscall
 	default:
 		std::cout<<"problem no "<< funcNum <<"not yet implemented.\n";
-		return -1.0;
+		return std::to_string(-1.0);
 		break;
 	}
 }

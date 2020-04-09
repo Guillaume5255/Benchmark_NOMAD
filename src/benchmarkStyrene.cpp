@@ -2,9 +2,9 @@
 #include "Eval/Evaluator.hpp"
 #include "Algos/MainStep.hpp"
 #include "Param/AllParameters.hpp"
+#include "Type/LHSearchType.hpp"
 
 #include "problems/blackbox.hpp"
-#include "Type/LHSearchType.hpp"
 
 #include <sys/stat.h>
 #include <sstream>

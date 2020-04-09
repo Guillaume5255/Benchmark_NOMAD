@@ -6,8 +6,9 @@ mutable struct Run_t
 	nb_2n_blocks::Int64
 	iter::Array{Int64,1}
 	eval_nb::Array{Int64,1}
+	eval_time::Array{Float64,1}	
 	eval_f::Array{Float64,1}
-	eval_time::Array{Float64,1}
+	
 end
 
 mutable struct Iter_t

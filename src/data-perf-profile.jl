@@ -1,12 +1,10 @@
-
 using Plots
-#pgfplots()
-gr()
+pgfplots()
+#gr()
 #gadfly()
 #pyplot()
 
 using LaTeXStrings
-
 
 include("helperFunctions.jl")
 
@@ -71,7 +69,7 @@ end
 
 function tpsMatrix(tau::Float64, runs::Array{Run_t,1}, attr::String)
 	nbSolvers = 4 #find a way to automatically get these information from runs
-	nbProblems = 24
+	nbProblems = 24#*5 pb_num*pb_seed
 	tps_matrix = zeros(nbProblems,nbSolvers)
 
 	for run in runs
@@ -107,7 +105,7 @@ end
 
 
 function DataProfile(alpha::Float64, s::Int64, normalized_tps_matrix::Array{Float64,2})
-	#normalized_tps_matrix = tps_matrix/n+1
+	#normalized_tps_matrix = tps_matrix/n+1 #we dont have access to n 
 	count = 0
 	nbProblems = size(normalized_tps_matrix)[1]
 	for p in 1:nbProblems
@@ -209,8 +207,8 @@ function PlotProfile(attr::String, tau::Float64)
 		xlabel!(PPplot,"alpha")
 		xlabel!(DPplot,"alpha")
 
-		ylabel!(PPplot,"propostion de problemes resolus")
-		ylabel!(DPplot,"propostion de problemes resolus")
+		ylabel!(PPplot,"proportion de problemes resolus")
+		ylabel!(DPplot,"proportion de problemes resolus")
 
 
 		title!(PPplot,Title)
@@ -230,4 +228,91 @@ function PlotProfile(attr::String, tau::Float64)
 		println("done")
 
 	end
+end
+
+
+
+function PreprocessRunsStaticDynamic()
+	#directories for dynamic and static runs (only oignon and enriched)
+	dirDynamicRun = "../run-pc-perso-confinement/run-pb-test-dynamic" 
+	dirStaticRun = "../run-pc-perso-confinement/run-pb-test-static"
+
+	staticRunsAllDims = ExtractData(dirStaticRun)
+	dynamicRunsAllDims = ExtractData(dirDynamicRun)
+	
+	for run in staticRunsAllDims #poll strategies are the solvers, changing static to dynamic changes the solver so we put this information in run.poll_strategy
+		# : run.poll_strategy < 3 : static else dynamic 
+		run.poll_strategy = run.poll_strategy-2
+	end
+
+	return [staticRunsAllDims; dynamicRunsAllDims]
+end
+
+
+
+function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
+	
+	runsAllDims = PreprocessRunsStaticDynamic()
+
+	runsAllDims = FilterRuns("NB_2N_BLOCK",nb2nBlock,runsAllDims)
+	runsAllDims = FilterRuns("PB_SEED",0,runsAllDims)#to remove
+
+	dims = [2, 4, 8, 16, 32]#, 64] data to come
+
+	colors = [:red, :yellow, :red, :yellow]
+	pollStr = ["Oignon statique", "Enrichie statique", "Oignon dynamique", "Enrichie dynamique"]
+	markers = [:cross, :cross, :xcross, :xcross]
+	legendPos = :bottomright
+
+	for n in dims
+		runs = FilterRuns("DIM",n,runsAllDims)
+
+		tps_matrix = tpsMatrix(tau,runs,attr)
+		rps_matrix = rpsMatrix(tps_matrix) 
+
+		normalized_tps_matrix = copy(tps_matrix)
+		normalized_tps_matrix = normalized_tps_matrix/(n+1)
+
+		alphaPP = 0.0:1.0:(500*n)
+		alphaDP = 0.0:1.0:(20)
+		PPplot = plot(dpi=300)
+		DPplot = plot(dpi=300)
+
+		Title = "dimension $(n), tau = $(tau)"
+
+		for s in 1:size(pollStr)[1]
+
+			PerformanceProfileValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
+			DataProfileValue =  [DataProfile(alpha, s, normalized_tps_matrix) for alpha in alphaDP]
+
+			PPplot = plot!(PPplot,alphaPP, PerformanceProfileValue, color=colors[s], marker = markers[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+
+			DPplot = plot!(DPplot,alphaDP, DataProfileValue, color=colors[s], marker = markers[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+
+		end
+
+		xlabel!(PPplot,"alpha")
+		xlabel!(DPplot,"alpha")
+
+		ylabel!(PPplot,"proportion de problemes resolus")
+		ylabel!(DPplot,"proportion de problemes resolus")
+
+
+		title!(PPplot,Title)
+		title!(DPplot,Title)
+
+
+		filename = "../plots/pb-test/dynamicVSstatic/profiles"
+		println("saving in $(filename)")
+
+		cd(filename)
+		savefig(PPplot,"performance_profile_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
+		savefig(DPplot,"data_profile_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
+		cd("../../../../src")
+
+		println("done")
+
+
+	end
+
 end

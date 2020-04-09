@@ -2,9 +2,9 @@
 #include "Eval/Evaluator.hpp"
 #include "Algos/MainStep.hpp"
 #include "Param/AllParameters.hpp"
+#include "Type/LHSearchType.hpp"
 
 #include "problems/blackbox.hpp"
-#include "Type/LHSearchType.hpp"
 
 #include <sys/stat.h>
 #include <sstream>
@@ -34,18 +34,19 @@ public:
 		try
 		{
 			//auto startEval = omp_get_wtime();
-			std::string f = bb->f(xtrue);
+			auto f = bb->f(xtrue);
 			auto stopEval = omp_get_wtime();
 
 			//evalTime += stopEval - startEval;
+			if (f[0]!='E'){
+				std::ostringstream strs;
+				strs << std::setprecision(10) << std::fixed << stopEval-evalTime<<" "<<f;
+				std::string bbo = strs.str();
+			
+				x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
 
-			std::ostringstream strs;
-			strs << std::setprecision(10) << std::fixed << stopEval-evalTime<<" "<<f;
-			std::string bbo = strs.str();
-
-			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
-
-			eval_ok = true;
+				eval_ok = true;
+			}
 		}
 		catch (std::exception &e)
 		{
@@ -71,8 +72,14 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE",false);
 
 	p.getPbParams()->setAttributeValue("DIMENSION", n);
-	p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -5.0)); // all var. >= -5.0
-	p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0)); // all var. <= 5.0
+	if (pb_num == 25){
+		p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0));
+		p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 100.0));
+	}	
+	else{
+		p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -5.0));
+		p.getPbParams()->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0));
+	}
 	p.getPbParams()->setAttributeValue("MIN_MESH_SIZE",NOMAD::ArrayOfDouble(n, 0.0000000000001));
 
 	if (pb_num == 25)
@@ -95,13 +102,13 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 72 on CASIR and to set on 11 at GERAD
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 1 on analytical problems and to np_cpu on real blackboxes
 	p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
 	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
-	auto name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
+	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 	switch (poll_strategy)
 	{
 	case 1:
@@ -114,7 +121,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 		p.getRunParams()->setAttributeValue("MULTI_POLL",true);
 
-		name = name + std::to_string(2*dim+1)+"_";
+		name = name + std::to_string(2*n+1)+"_";
 		break;
 
 	case 3:
@@ -138,7 +145,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	case 5:
 		p.getRunParams()->setAttributeValue("CLASSICAL_POLL",false);
 
-		p.getRunParams()->setAttributeValue("LH_EVAL",(2*dim)*nb2nBlock*nbIter); //with this parameter, there are no iteration, we just sample the whole region and evaluate all at once
+		p.getRunParams()->setAttributeValue("LH_EVAL",(2*n)*nb2nBlock*nbIter); //with this parameter, there are no iteration, we just sample the whole region and evaluate all at once
 		name = name + std::to_string(nb2nBlock)+"_";
 		break;
 
@@ -158,7 +165,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 // Runing with the poll strategy poll_strategy
 void optimize(int dim, int pb_num, int pb_seed, int poll_strategy, int nb_2n_block){
 	//check if the run file already exists
-	string name = "run_"+std::to_string(dim)+"_"std::to_string(pb_num)+"_"std::to_string(pb_seed)+"_"std::to_string(poll_strategy)+"_"std::to_string(nb_2n_block)+"_.txt";
+	string name = "run_"+std::to_string(dim)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_"+std::to_string(nb_2n_block)+"_.txt";
 	struct stat buffer;
 	bool runNotExists = stat(name.c_str(),&buffer)!=0;
 
