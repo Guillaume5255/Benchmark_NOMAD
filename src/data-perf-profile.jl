@@ -13,22 +13,11 @@ include("helperFunctions.jl")
 
 #there are 24 problems that has random components in their builds (not in their evaluations ! ), we have 5 different instances of each problems, maybe it's not relevant to look at all instances
 
-#we have two ways to compute tps : by looking to iterations and by looking to evaluations, the first one is useful in the case of a constant number of evaluaitons per iterations
+#we have three ways to compute tps : by looking to iterations, evaluations and time.
 
-function tps_iter(tau::Float64, iterations::Iter_t)# returns the amount of computation time or the number of iterations to satisfy the convergence test : f(x_0)-f(x)>= (1-tau)(f(x_0)-f_L))
-												#here we know that all problems can reach 0 as minimum, so we take f_L = 0
-	f_L = 0.0 #to compute explicitely if we do not use the set of problems that all reach 0
-	fx_0 = iterations.f_k[1]
-	for i in 1:size(iterations.f_k)[1]
-		fx =  iterations.f_k[i]
-		if fx_0-fx >= (1-tau)*(fx_0-f_L)
-			return i 
-		end
-	end
-end
-
+# returns the amount of computation time, the number of iterations or the number of evaluations to satisfy the convergence test : f(x_0)-f(x)>= (1-tau)(f(x_0)-f_L))
 function tps(tau::Float64, run::Run_t, attr::String)
-	f_L = 0.0 #to compute explicitely if we do not use the set of problems that all reach 0
+	f_L = 0.0#here we know that all problems can reach 0 as minimum, so we take f_L = 0, to compute explicitely on real blackboxes
 	fx_0 = run.eval_f[1]
 
 	if attr == "EVAL"
@@ -48,13 +37,6 @@ function tps(tau::Float64, run::Run_t, attr::String)
 		end
 
 	elseif attr == "ITER"
-		#iterations = BuildIteration(run)
-		#for i in 1:size(iterations.f_k)[1]
-		#	fx =  iterations.f_k[i]
-		#	if fx_0-fx >= (1-tau)*(fx_0-f_L)
-		#		return i 
-		#	end
-		#end
 		for i in 1:size(run.eval_f)[1]
 			fx =  run.eval_f[i]
 			if fx_0-fx >= (1-tau)*(fx_0-f_L)
@@ -67,14 +49,42 @@ function tps(tau::Float64, run::Run_t, attr::String)
 
 end
 
+#returns the number of solvers and problems based on the runs given as parameters
+#looking to run.poll_strategy min and max; run.pb_num min and max and computes the product of the differences - 1
+#suppose that there are no gap in slover and pb list : if there are k solvers, there are indexed from 1 to k, if there are p problems, there are indexed form 1 to p
+function GetNbSolversProblems(runs)
+	numSolverMax = -Inf
+	numSolverMin = Inf
+	numPbMax = -Inf
+	numPbMin = Inf
+	for run in runs
+		if numSolverMax < run.poll_strategy
+			numSolverMax = run.poll_strategy
+		end
+		if numSolverMin > run.poll_strategy
+			numSolverMin = run.poll_strategy
+		end
+		if numPbMax < run.pb_num
+			numPbMax = run.pb_num
+		end
+		if numPbMin > run.pb_num
+			numPbMin = run.pb_num
+		end
+	end
+
+	nbSolvers = numSolverMax - numSolverMin + 1
+	nbPorblems = numPbMax - numPbMin + 1
+	return nbSolvers, nbPorblems
+end
+
+
 function tpsMatrix(tau::Float64, runs::Array{Run_t,1}, attr::String)
-	nbSolvers = 4 #find a way to automatically get these information from runs
-	nbProblems = 24#*5 pb_num*pb_seed
+	nbSolvers, nbProblems = GetNbSolversProblems(runs)
 	tps_matrix = zeros(nbProblems,nbSolvers)
 
 	for run in runs
 		p = run.pb_num
-		s = run.poll_strategy # one solver = one strategy (with number of 2nblocks fixed in preprocessing runs in prepareRunsForProfiles())
+		s = run.poll_strategy # one solver = one strategy 
 		tps_matrix[p,s]=tps(tau, run, attr)
 	end
 	
@@ -104,12 +114,12 @@ function PerformanceProfile(alpha::Float64, s::Int64,rps_matrix::Array{Float64,2
 end
 
 
-function DataProfile(alpha::Float64, s::Int64, normalized_tps_matrix::Array{Float64,2})
-	#normalized_tps_matrix = tps_matrix/n+1 #we dont have access to n 
+function DataProfile(kappa::Float64, s::Int64, normalized_tps_matrix::Array{Float64,2})
+	#normalized_tps_matrix = tps_matrix/n+1, we dont have access to n 
 	count = 0
 	nbProblems = size(normalized_tps_matrix)[1]
 	for p in 1:nbProblems
-		if normalized_tps_matrix[p,s] <= alpha
+		if normalized_tps_matrix[p,s] <= kappa
 			count = count+1
 		end
 	end
@@ -232,34 +242,41 @@ end
 
 
 
-function PreprocessRunsStaticDynamic()
+function PreprocessRunsStaticDynamic() # used in CompareStaticDynamic()
 	#directories for dynamic and static runs (only oignon and enriched)
 	dirDynamicRun = "../run-pc-perso-confinement/run-pb-test-dynamic" 
 	dirStaticRun = "../run-pc-perso-confinement/run-pb-test-static"
 
 	staticRunsAllDims = ExtractData(dirStaticRun)
 	dynamicRunsAllDims = ExtractData(dirDynamicRun)
-	
+	nbProblems = 24
 	for run in staticRunsAllDims #poll strategies are the solvers, changing static to dynamic changes the solver so we put this information in run.poll_strategy
 		# : run.poll_strategy < 3 : static else dynamic 
 		run.poll_strategy = run.poll_strategy-2
+
+		run.pb_num = nbProblems*(run.pb_seed) + run.pb_num #computing real pb number with seed 
+	end
+	for run in dynamicRunsAllDims
+		run.pb_num = nbProblems*(run.pb_seed) + run.pb_num #computing real pb number with seed 
 	end
 
 	return [staticRunsAllDims; dynamicRunsAllDims]
 end
 
 
-
+#creates plots in ../plots/pb-test/dynamicVSstatic/profiles/
+#using data in ../run-pc-perso-confinement/run-pb-test-dynamic and ../run-pc-perso-confinement/run-pb-test-static
+#trying to show differences between oignon and enriched poll with static and dynamic mode
 function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
 	
 	runsAllDims = PreprocessRunsStaticDynamic()
 
 	runsAllDims = FilterRuns("NB_2N_BLOCK",nb2nBlock,runsAllDims)
-	runsAllDims = FilterRuns("PB_SEED",0,runsAllDims)#to remove
+	#runsAllDims = FilterRuns("PB_SEED",0,runsAllDims)#to remove
 
 	dims = [2, 4, 8, 16, 32]#, 64] data to come
 
-	colors = [:red, :yellow, :red, :yellow]
+	colors = [:grey, :blue, :red, :yellow]
 	pollStr = ["Oignon statique", "Enrichie statique", "Oignon dynamique", "Enrichie dynamique"]
 	markers = [:cross, :cross, :xcross, :xcross]
 	legendPos = :bottomright
@@ -273,26 +290,35 @@ function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
 		normalized_tps_matrix = copy(tps_matrix)
 		normalized_tps_matrix = normalized_tps_matrix/(n+1)
 
-		alphaPP = 0.0:1.0:(500*n)
-		alphaDP = 0.0:1.0:(20)
+		#nb2nblock = 8 attr = EVAL
+		#alphaPP = 0.0:0.5:(20)
+		#kappaDP = 0.0:1.0:(25*n*n)
+
+		#nb2nblock = 64 attr = EVAL
+		alphaPP = 0.0:0.5:(100)
+		kappaDP = 0.0:1.0:(50*n*n+600)
+
+		#nb2nblock = 8 attr = ITER
+		#alphaPP = 0.0:0.1:(15)
+		#kappaDP = 0.0:0.1:(n+25)
+
 		PPplot = plot(dpi=300)
 		DPplot = plot(dpi=300)
 
-		Title = "dimension $(n), tau = $(tau)"
+		Title = "\$n = $(n), \\tau = $(tau), n_p^{max} = $(nb2nBlock)\$"
 
 		for s in 1:size(pollStr)[1]
 
-			PerformanceProfileValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
-			DataProfileValue =  [DataProfile(alpha, s, normalized_tps_matrix) for alpha in alphaDP]
+			PPValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
+			DPValue =  [DataProfile(kappa, s, normalized_tps_matrix) for kappa in kappaDP]
 
-			PPplot = plot!(PPplot,alphaPP, PerformanceProfileValue, color=colors[s], marker = markers[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
-
-			DPplot = plot!(DPplot,alphaDP, DataProfileValue, color=colors[s], marker = markers[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+			PPplot = plot!(PPplot,alphaPP, PPValue, color=colors[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
+			DPplot = plot!(DPplot,kappaDP, DPValue, color=colors[s], label = pollStr[s], legend=legendPos, linetype=:steppre)
 
 		end
 
-		xlabel!(PPplot,"alpha")
-		xlabel!(DPplot,"alpha")
+		xlabel!(PPplot,"\$\\alpha\$")
+		xlabel!(DPplot,"\$\\kappa\$")
 
 		ylabel!(PPplot,"proportion de problemes resolus")
 		ylabel!(DPplot,"proportion de problemes resolus")
@@ -302,17 +328,15 @@ function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
 		title!(DPplot,Title)
 
 
-		filename = "../plots/pb-test/dynamicVSstatic/profiles"
+		filename = "../plots/pb-test/dynamicVSstatic/profiles/$(attr)"
 		println("saving in $(filename)")
 
 		cd(filename)
-		savefig(PPplot,"performance_profile_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
-		savefig(DPplot,"data_profile_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
-		cd("../../../../src")
+		savefig(PPplot,"pp_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
+		savefig(DPplot,"dp_dim_$(n)_tau_$(tau)_attr_$(attr).svg")
+		cd("../../../../../src")
 
 		println("done")
 
-
 	end
-
 end

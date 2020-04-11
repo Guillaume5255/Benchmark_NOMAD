@@ -191,10 +191,13 @@ void optimize(int dim, int pb_num, int pb_seed, int poll_strategy, int nb_2n_blo
 		TheMainStep->setEvaluator(std::move(ev));
 
 
-		std::cout<<"\n"<<name <<" does not exists, creating it :\n";
+		std::cout<<"\n\n"<<name <<" does not exists, creating it :\n\n";
 		try
 		{
-			std::cout<<" Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+			std::cout<<"\t Optimization : dimension = "<<dim<<", pb num = "<<pb_num<<", poll strategy = "<<poll_strategy<<"\n";
+			std::time_t startTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+			std::cout<<"\t Started at : "<<std::ctime(&startTime)<<"\n"; 
 
 			auto start = omp_get_wtime();
 			// Algorithm creation and execution
@@ -203,7 +206,7 @@ void optimize(int dim, int pb_num, int pb_seed, int poll_strategy, int nb_2n_blo
 			TheMainStep->end();
 
 			auto stop = omp_get_wtime();
-			std::cout<<" Done in "<<stop-start<<" s\n\n";
+			std::cout<<"Done in "<<stop-start<<" s\n\n";
 		}
 
 		catch(std::exception &e)
@@ -216,7 +219,7 @@ void optimize(int dim, int pb_num, int pb_seed, int poll_strategy, int nb_2n_blo
 
 	}
 	else
-		 std::cout<<"\n"<<name <<" already exists, skipping to next one.\n";
+		 std::cout<<"\n\n"<<name <<" already exists, skipping to next one.\n\n";
 }
 
 
