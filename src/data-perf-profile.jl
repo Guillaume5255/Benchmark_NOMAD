@@ -244,11 +244,15 @@ end
 
 function PreprocessRunsStaticDynamic() # used in CompareStaticDynamic()
 	#directories for dynamic and static runs (only oignon and enriched)
-	dirDynamicRun = "../run-pc-perso-confinement/run-pb-test-dynamic" 
+	dirDynamicLinRun = "../run-pc-perso-confinement/run-pb-test-dynamic" #to change to "../run-pc-perso-confinement/run-pb-test/dynamic/exp"
+	dirDynamicExpRun = "../run-pc-perso-confinement/run-pb-test/dynamic/exp" 
+
 	dirStaticRun = "../run-pc-perso-confinement/run-pb-test-static"
 
 	staticRunsAllDims = ExtractData(dirStaticRun)
-	dynamicRunsAllDims = ExtractData(dirDynamicRun)
+	dynamicLinRunsAllDims = ExtractData(dirDynamicLinRun)
+	#dynamicExpRunsAllDims = ExtractData(dirDynamicExpRun)
+
 	nbProblems = 24
 	for run in staticRunsAllDims #poll strategies are the solvers, changing static to dynamic changes the solver so we put this information in run.poll_strategy
 		# : run.poll_strategy < 3 : static else dynamic 
@@ -256,11 +260,24 @@ function PreprocessRunsStaticDynamic() # used in CompareStaticDynamic()
 
 		run.pb_num = nbProblems*(run.pb_seed) + run.pb_num #computing real pb number with seed 
 	end
-	for run in dynamicRunsAllDims
+
+	for run in dynamicLinRunsAllDims
 		run.pb_num = nbProblems*(run.pb_seed) + run.pb_num #computing real pb number with seed 
 	end
 
-	return [staticRunsAllDims; dynamicRunsAllDims]
+	#for run in dynaicExpRunsAllDims #poll strategies are the solvers, changing static to dynamic changes the solver so we put this information in run.poll_strategy
+		# : run.poll_strategy < 3 : static else dynamic 
+	#	run.poll_strategy = run.poll_strategy+2
+
+	#	run.pb_num = nbProblems*(run.pb_seed) + run.pb_num #computing real pb number with seed 
+	#end
+
+	return [staticRunsAllDims; dynamicLinRunsAllDims]#; dynamicExpRunsAllDims]
+end
+
+function PreprocessAllStaticRuns()
+	AllStaticRunsDir = "../run-pb-test/allStaticRuns"
+	#All
 end
 
 
@@ -268,17 +285,21 @@ end
 #using data in ../run-pc-perso-confinement/run-pb-test-dynamic and ../run-pc-perso-confinement/run-pb-test-static
 #trying to show differences between oignon and enriched poll with static and dynamic mode
 function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
-	
+	#for comparing static dynamic 
 	runsAllDims = PreprocessRunsStaticDynamic()
-
 	runsAllDims = FilterRuns("NB_2N_BLOCK",nb2nBlock,runsAllDims)
 	#runsAllDims = FilterRuns("PB_SEED",0,runsAllDims)#to remove
+
+	#for comparing all static strategies
+	#runsAllDims = PreprocessAllStaticRuns()
+
+	#for comparinng previous strategies real blackbox problems 
 
 	dims = [2, 4, 8, 16, 32]#, 64] data to come
 
 	colors = [:grey, :blue, :red, :yellow]
-	pollStr = ["Oignon statique", "Enrichie statique", "Oignon dynamique", "Enrichie dynamique"]
-	markers = [:cross, :cross, :xcross, :xcross]
+	pollStr = ["Oignon statique", "Enrichie statique", "Oignon dynamique lin.", "Enrichie dynamique lin."]#, "Oignon dynamique exp.", "Oignon dynamique exp."] 
+	#markers = [:cross, :cross, :xcross, :xcross]
 	legendPos = :bottomright
 
 	for n in dims
@@ -323,11 +344,10 @@ function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
 		ylabel!(PPplot,"proportion de problemes resolus")
 		ylabel!(DPplot,"proportion de problemes resolus")
 
-
 		title!(PPplot,Title)
 		title!(DPplot,Title)
 
-
+		#filename = "../plots/pb-test/compareAllStrategies/$(attr)" #to compare all strategies, execute multi oignon and enriched with the same number of points : 2n+1
 		filename = "../plots/pb-test/dynamicVSstatic/profiles/$(attr)"
 		println("saving in $(filename)")
 
