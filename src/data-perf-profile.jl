@@ -1,10 +1,3 @@
-using Plots
-pgfplots()
-#gr()
-#gadfly()
-#pyplot()
-
-using LaTeXStrings
 
 include("helperFunctions.jl")
 
@@ -360,3 +353,5 @@ function CompareStaticDynamic(attr::String, nb2nBlock::Int64, tau::Float64)
 
 	end
 end
+
+

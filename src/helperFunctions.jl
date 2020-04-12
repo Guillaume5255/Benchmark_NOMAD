@@ -78,42 +78,6 @@ function ExtractData(dir::String)
 	return runs
 end
 
-function BuildIteration(run::Run_t) # the output object is similar to the run object except it contains a field that is the number of iterations made during the corresponding run and the value of f at each of these iterations
-	nbPointsPerIter = run.nb_2n_blocks*2*run.dim
-
-	nbIter = div(run.eval_nb[end],nbPointsPerIter)
-	iterationSuccess = [run.eval_f[1]]
-	for k in 1:(nbIter) #for each iteration we want to find the best value of f returned
-		fbest = iterationSuccess[k]
-		#println("OK $(k)")
-
-		#for i in 1:size(run.eval_nb)[1]
-		#	evalIter = div(run.eval_nb[i],nbPointsPerIter)
-		#	if evalIter == k #we only look at evaluations which number correspond to the current iteration k
-		#		#println("OK")
-		#		if fbest > run.eval_f[i]
-		#			fbest = run.eval_f[i]
-		#		end
-		#	end
-		#end
-		for i in 1:nbPointsPerIter
-			
-		end
-		push!(iterationSuccess,fbest)
-	end
-	#println(iterationSuccess)
-	#println(size(iterationSuccess))
-	#println(nbIter)
-	iteration = Iter_t(run, iterationSuccess, nbIter)
-	
-	return iteration 
-end
-
-function BuildAllIterations(allRuns::Array{Run_t,1}) 
-	allIterations = [BuildIteration(run) for run in allRuns]
-	return allIterations
-end
-
 
 
 function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
@@ -123,6 +87,24 @@ function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
 		addRun = true 
 		for pn in pbNum
 			if run.pb_num == pn 
+				addRun = false
+				break
+			end
+		end
+		if addRun
+			push!(newRuns, run)
+		end
+	end
+	return newRuns
+end
+
+function ExcludeDims(dims::Array{Int64,1},runs::Array{Run_t,1} )
+	newRuns = Array{Run_t,1}([])
+
+	for run in runs
+		addRun = true 
+		for dim in dims
+			if run.dim == dim 
 				addRun = false
 				break
 			end
