@@ -107,7 +107,11 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
+
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
+	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //"EXPONENTIAL"
+	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
+
 	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 	switch (poll_strategy)
 	{
@@ -254,7 +258,8 @@ int main (int argc, char **argv)
 	}
 
 	for(int dim = DIM_MIN ; dim <DIM_MAX ; dim=2*dim){ //every problem is scalable
-
+		//NB_2N_BLOCK_MIN = 2*dim+1;
+		//NB_2N_BLOCK_MAX = NB_2N_BLOCK_MIN + 1; // used to see the influence of geometry of generated points on the optimization
 		for(int pb_num = PB_NUM_MIN ; pb_num < PB_NUM_MAX ; pb_num++ ){ //problem number : 1..24
 
 			for(int pb_seed = PB_SEED_MIN ; pb_seed < PB_SEED_MAX ; pb_seed++ ){ //to generate the random rotation matrices and constant values of each problem
