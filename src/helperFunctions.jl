@@ -18,6 +18,15 @@ function FindEmptyRun(dir::String)
 end
 
 
+#returns the absolute path to the folder Benchmark_NOMAD :
+#/dir1/dir2/dir3/Benchmark_NOAMD
+function GetAbsolutePath()
+	path = split(pwd(),"Benchmark_NOMAD")[1]
+	path = path*"Benchmark_NOMAD"
+	return path
+end
+
+
 function ExtractData(dir::String) 
 	#fills an array of Run_t objects, each object contains the data of the run : 
 	#wich dimension, which problem, which seed, which strategy, which number of 2n blocks
@@ -30,6 +39,8 @@ function ExtractData(dir::String)
 	#	2:multi poll
 	#	3:oignon poll
 	#	4:enriched poll
+	absolutePath = GetAbsolutePath()
+	dir = absolutePath*dir
 	runsList = readdir(dir)
 	runs = Array{Run_t,1}([])
 	for runName in runsList
