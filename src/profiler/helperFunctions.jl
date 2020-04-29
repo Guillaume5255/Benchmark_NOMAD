@@ -26,7 +26,7 @@ function GetAbsolutePath()
 	return path
 end
 
-
+#### function to extract data form files obtained with benchmarker.exe
 function ExtractData(dir::String) 
 	#fills an array of Run_t objects, each object contains the data of the run : 
 	#wich dimension, which problem, which seed, which strategy, which number of 2n blocks
@@ -89,7 +89,7 @@ function ExtractData(dir::String)
 	return runs
 end
 
-
+#### functions for managing runs
 
 function ExcludeProblems(pbNum::Array{Int64,1},runs::Array{Run_t,1} )
 	newRuns = Array{Run_t,1}([])

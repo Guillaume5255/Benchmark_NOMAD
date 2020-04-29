@@ -4,7 +4,7 @@
 #include "Param/AllParameters.hpp"
 #include "Type/LHSearchType.hpp"
 
-#include "problems/blackbox.hpp"
+#include "../problems/blackbox.hpp"
 
 #include <sys/stat.h>
 #include <sstream>
@@ -109,7 +109,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
 	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
-	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //"EXPONENTIAL"
+	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"EXPONENTIAL"); //"EXPONENTIAL"
 	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
 
 	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";

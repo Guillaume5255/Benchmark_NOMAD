@@ -44,16 +44,16 @@ function SetAlphaKappa(attr::String, dim::Int, tau::Float64)
 
 	if attr == "EVAL"
 		if tau == 0.01
-			alphaStepArray = [0.1, 0.2, 0.2, 0.5, 0.5]
-			alphaMaxArray = [10.0, 20.0, 25.0, 50.0, 100.0]
-			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 50.0]
-			kappaMaxArray = [200.0, 1000.0, 2000.0, 10000.0, 50000.0]
+			alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
+			alphaMaxArray = [10.0, 20.0, 25.0, 20.0, 25.0]
+			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
+			kappaMaxArray = [150.0, 750.0, 2000.0, 2500.0, 2500.0]
 		end
 		if tau == 0.0001
-			alphaStepArray = [0.1, 0.2, 0.2, 0.5, 0.5]
-			alphaMaxArray = [10.0, 25.0, 25.0, 100.0, 100.0 ]
-			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 50.0]
-			kappaMaxArray = [300.0, 5000.0, 7500.0, 10000.0, 50000.0]
+			alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
+			alphaMaxArray = [10.0, 25.0, 25.0, 25.0, 25.0 ]
+			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
+			kappaMaxArray = [300.0, 2000.0, 2000.0, 2500.0, 2500.0]
 		end
 
 	end
@@ -76,7 +76,7 @@ function SetAlphaKappa(attr::String, dim::Int, tau::Float64)
 end
 
 #specific function to plot data and performance profile to compare static and dynamic runs
-function CompareInfluenceOfNbPointsWOMem(attr::String, OignonRuns::Array{Run_t,1}, EnrichedRuns::Array{Run_t,1})
+function Benchmarker(attr::String, OignonRuns::Array{Run_t,1}, EnrichedRuns::Array{Run_t,1})
 	tau = 0.01
 	outputFolderOignon = "/plots/pb-test/n_p_maxIncreaseInfluenceDynamic/Oignon/WithoutMemory/lin/profiles/$(attr)"
 	outputFolderEnriched = "/plots/pb-test/n_p_maxIncreaseInfluenceDynamic/Enriched/WithoutMemory/lin/profiles/$(attr)"
@@ -88,16 +88,13 @@ function CompareInfluenceOfNbPointsWOMem(attr::String, OignonRuns::Array{Run_t,1
 		filteredOignonRuns = FilterRuns("DIM", Int(n),OignonRuns)
 		filteredEnrichedRuns = FilterRuns("DIM", Int(n),EnrichedRuns)
 
-		outputNameOignon = "dim_$(n)_tau_$(tau)"
-		outputNameEnriched = "dim_$(n)_tau_$(tau)"
-
+		outputName = "dim_$(n)_tau_$(tau)"
 		Title = "\$n = $(n), \\tau = $(tau)\$"
 		
 		alphaStep, alphaMax, kappaStep, kappaMax = SetAlphaKappa(attr, n, tau)
 
-
-		PlotProfile(attr, tau, filteredOignonRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderOignon, outputNameOignon, Title)
-		PlotProfile(attr, tau, filteredEnrichedRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderEnriched, outputNameOignon, Title)
+		PlotProfile(attr, tau, filteredOignonRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderOignon, outputName, Title)
+		PlotProfile(attr, tau, filteredEnrichedRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderEnriched, outputName, Title)
 
 	end
 end

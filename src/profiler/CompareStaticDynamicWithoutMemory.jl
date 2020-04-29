@@ -1,7 +1,9 @@
 include("plotProfile.jl")
 
+#In this section we aim to look at the influence of dynamisme without memory on the optimization
+
 #specific function to prepare the data for comparing static and dynamic strategies
-function PreprocessRuns(nb2nBlock::Int64)
+function Preprocess(nb2nBlock::Int64)
 	#directories for dynamic and static runs (only oignon and enriched)
 	dirClassicRun = "/run-pc-perso-confinement/run-pb-test/classical-poll"
 	dirDynamicLinRun = "/run-pc-perso-confinement/run-pb-test/dynamic/without-memory/lin" 
@@ -112,7 +114,7 @@ function SetAlphaKappa(attr::String, nb2nBlock::Int, dim::Int, tau::Float64)
 end
 
 #specific function to plot data and performance profile to compare static and dynamic runs
-function CompareStaticDynamic(attr::String, allRuns::Array{Run_t,1})
+function Benchmarker(attr::String, allRuns::Array{Run_t,1})
 	tau = 0.0001
 	outputFolder = "/plots/pb-test/dynamicVSstatic/profiles/$(attr)"
 	AlgoNames = ["Oignon statique", "Enrichie statique", "Oignon dynamique lin.", "Enrichie dynamique lin.", "Classique"]#, "Oignon dynamique exp.", "Oignon dynamique exp."] 

@@ -2,7 +2,8 @@ include("plotProfile.jl")
 
 ## Here we want to compare all the static runs, they are all made with the same number of positive basis : 2n+1 
 # because multi poll is non scalable, so we set NB_LAYER = 2n+1 for oignon poll and NB_2N_BLOCK = 2n+1 for enriched poll 
-function PreprocessAllStaticRuns()
+# we aim to see the influence of the geometry used to generate the points
+function Preprocess()
 	dirClassicRun = "/run-pc-perso-confinement/run-pb-test/classical-poll"
 	dirOtherRun = "/run-pc-perso-confinement/run-pb-test/compareGeometry"
 
@@ -13,7 +14,7 @@ function PreprocessAllStaticRuns()
 	return [classicRun; otherStaticRuns]
 end
 
-function SetAlphaKappaAllStatic(attr::String, dim::Int, tau::Float64)
+function SetAlphaKappa(attr::String, dim::Int, tau::Float64)
 	alphaStepArray = [] #pp
 	alphaMaxArray = []
 	kappaStepArray = [] #dp
@@ -52,7 +53,7 @@ function SetAlphaKappaAllStatic(attr::String, dim::Int, tau::Float64)
 	return alphaStepArray[i], alphaMaxArray[i], kappaStepArray[i], kappaMaxArray[i]
 end
 
-function CompareGeometry(attr::String, allRuns::Array{Run_t,1})
+function Benchmarker(attr::String, allRuns::Array{Run_t,1})
 	tau = 0.0001
 	outputFolder = "/plots/pb-test/geometryInfluence/profiles/$(attr)"
 	AlgoNames = ["Classic", "Multi statique","Oignon statique", "Enrichie statique"]

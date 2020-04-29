@@ -94,7 +94,7 @@ function SetAlphaKappa(attr::String, nb2nBlock::Int, dim::Int, tau::Float64)
 end
 
 #specific function to plot data and performance profile to compare static and dynamic runs
-function PlotAll(attr::String, allRuns::Array{Run_t,1})
+function Benchmarker(attr::String, allRuns::Array{Run_t,1})
 	tau = 0.001
 	outputFolder = "/plots/pb-test/withVSwithoutMemory/profiles/$(attr)"
 	AlgoNames = ["Classique", "Oignon statique", "Enrichie statique", "Oignon dynamique wo. mem.", "Enrichie dynamique wo. mem.",  "Oignon dynamique wo. mem.", "Enrichie dynamique wo. mem."]
