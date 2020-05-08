@@ -1,7 +1,7 @@
-This is LuaTeX, Version 1.0.4 (TeX Live 2017/Debian)  (format=lualatex 2020.2.24)  28 APR 2020 14:10
+This is LuaTeX, Version 1.0.4 (TeX Live 2017/Debian)  (format=lualatex 2020.2.24)  8 MAY 2020 01:13
  system commands enabled.
-**./tmpo8lasY/tikzpicture.tex
-(./tmpo8lasY/tikzpicture.tex
+**./tmpa8qJnF/tikzpicture.tex
+(./tmpa8qJnF/tikzpicture.tex
 LaTeX2e <2017-04-15>
 Lua module: luaotfload-main 2017/01/29 2.80001 OpenType layout system.
 Lua module: lualibs 2017-02-01 2.5 ConTeXt Lua standard libraries.
@@ -34,8 +34,11 @@ Inserting `luaotfload.aux.set_capheight' at position 3 in `luaotfload.patch_font
 '.
 Inserting `luaotfload.rewrite_fontname' at position 4 in `luaotfload.patch_font'
 .
-luaotfload | main : initialization completed in 0.135 seconds
+luaotfload | main : initialization completed in 0.144 seconds
 Babel <3.18> and hyphenation patterns for 1 language(s) loaded.
+(/usr/share/texlive/texmf-dist/tex/generic/luatex85/luatex85.sty
+Package: luatex85 2016/06/15 v1.4 pdftex aliases for luatex
+)
 (/usr/share/texlive/texmf-dist/tex/latex/standalone/standalone.cls
 Document Class: standalone 2015/07/15 v1.2 Class to compile TeX sub-files standa
 lone
@@ -526,20 +529,20 @@ File: pgflibraryarrows.code.tex 2013/09/23 v3.0.1a (rcs-revision 1.16)
 No file tikzpicture.aux.
 
 \openout1 = tikzpicture.aux
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
 ABD: EveryShipout initializing macros
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -603,63 +606,64 @@ Package pgfplots notification 'compat/show suggested version=true': document has
 (load luc: /home/guillaume/.texlive2017/texmf-var/luatex-cache/generic/fonts/otl
 /lmroman8-regular.luc)
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 772.
+(Font)              <8> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 772.
+(Font)              <6> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 772.
+(Font)              <5> on input line 1021.
 (load luc: /home/guillaume/.texlive2017/texmf-var/luatex-cache/generic/fonts/otl
 /lmroman12-regular.luc)
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 772.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 1021.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 772.
+(Font)              size <5> substituted on input line 1021.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <5.5> not available
-(Font)              size <5> substituted on input line 772.
+(Font)              size <5> substituted on input line 1021.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 772.
+(Font)              size <5> substituted on input line 1021.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <11> on input line 772.
+(Font)              <11> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7.69997> on input line 772.
+(Font)              <7.69997> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5.5> on input line 772.
-LaTeX Font Info:    Calculating math sizes for size <14> on input line 772.
+(Font)              <5.5> on input line 1021.
+LaTeX Font Info:    Calculating math sizes for size <14> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14> on input line 772.
+(Font)              <14> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9.79996> on input line 772.
+(Font)              <9.79996> on input line 1021.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 772.
-! Undefined control sequence.
-\sa@placebox ->\newpage \global \pdfpagewidth 
-                                              =\wd \sa@box \global \pdfpageh...
-l.774 \end{tikzpicture}
-                     
+(Font)              <7> on input line 1021.
+! Interruption.
+\@secondoftwo #1#2->#2
+                      
+l.1021 \end{axis}
+               
 ? 
 ! Emergency stop.
-\sa@placebox ->\newpage \global \pdfpagewidth 
-                                              =\wd \sa@box \global \pdfpageh...
-l.774 \end{tikzpicture}
-                     
+\@secondoftwo #1#2->#2
+                      
+l.1021 \end{axis}
+               
 End of file on the terminal!
 
 
 
 Here is how much of LuaTeX's memory you used:
- 23208 strings out of 494480
- 100000,953878 words of node,token memory allocated 21171 words of node memory still in use:
-   197 hlist, 7 vlist, 1 rule, 6 disc, 1 dir, 34 math, 418 glue, 11 kern, 132 gl
-yph, 2263 attribute, 45 glue_spec, 2263 attribute_list, 2 if_stack, 1 write, 191
-1 pdf_literal, 41 pdf_colorstack nodes
-   avail lists: 2:3,3:1,5:26,6:1,7:2,8:11
- 26556 multiletter control sequences out of 65536+600000
+ 23312 strings out of 494480
+ 100000,953878 words of node,token memory allocated 21533 words of node memory still in use:
+   96 hlist, 1 vlist, 1 rule, 7 disc, 12 dir, 20 math, 296 glue, 5 kern, 15 unse
+t, 131 glyph, 4 align_record, 2510 attribute, 54 glue_spec, 2510 attribute_list,
+ 16 temp, 1 align_stack, 2 if_stack, 1 write, 2262 pdf_literal, 29 pdf_colorstac
+k nodes
+   avail lists: 2:33,5:6,8:24
+ 26652 multiletter control sequences out of 65536+600000
  49 fonts using 3051127 bytes
- 74i,18n,128p,817b,2191s stack positions out of 5000i,500n,10000p,200000b,100000s
+ 74i,18n,128p,851b,2188s stack positions out of 5000i,500n,10000p,200000b,100000s
 !  ==> Fatal error occurred, no output PDF file produced!

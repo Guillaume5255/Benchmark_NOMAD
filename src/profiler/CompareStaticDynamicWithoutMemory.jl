@@ -41,39 +41,29 @@ function Preprocess(nb2nBlock::Int64)
 	return allRuns
 end
 function SetAlphaKappa(attr::String, nb2nBlock::Int, dim::Int, tau::Float64)
-	alphaStepArray = [] #pp
 	alphaMaxArray = []
-	kappaStepArray = [] #dp
 	kappaMaxArray = []
 
 	
 	if nb2nBlock == 8
 		if attr == "EVAL"
 			if tau == 0.01
-				alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
 				alphaMaxArray = [10.0, 20.0, 25.0, 30.0, 30.0]
-				kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
 				kappaMaxArray = [200.0, 1000.0, 2000.0, 5000.0, 10000.0]
 			end
 			if tau == 0.0001
-				alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
 				alphaMaxArray = [10.0, 25.0, 25.0, 50.0, 50.0]
-				kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
 				kappaMaxArray = [300.0, 5000.0, 7500.0, 10000.0, 10000.0]
 			end
 	
 		end
 		if attr == "ITER"
 			if tau == 0.01
-				alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 				alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-				kappaStepArray = [0.2, 0.2, 0.2, 0.2, 0.2]
 				kappaMaxArray = [25.0, 25.0, 30.0, 30.0, 30.0]
 			end
 			if tau == 0.0001
-				alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 				alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-				kappaStepArray = [0.2, 0.2, 0.2, 0.2, 0.2]
 				kappaMaxArray = [25.0, 25.0, 30.0, 30.0, 30.0]
 			end
 		end
@@ -81,36 +71,28 @@ function SetAlphaKappa(attr::String, nb2nBlock::Int, dim::Int, tau::Float64)
 	if nb2nBlock == 64
 		if attr == "EVAL"
 			if tau == 0.01
-				alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.4]*8
 				alphaMaxArray = [80.0, 100.0, 100.0, 100.0, 200.0]
-				kappaStepArray = [2.0, 5.0, 10.0, 10.0, 10.0]*4
 				kappaMaxArray = [400.0, 1000.0, 2000.0, 5000.0, 10000.0]*4
 			end
 			if tau == 0.0001
-				alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.4]*8
 				alphaMaxArray = [80.0, 100.0, 100.0, 100.0, 200.0]
-				kappaStepArray = [2.0, 5.0, 10.0, 10.0, 10.0]*4
 				kappaMaxArray = [400.0, 1000.0, 2000.0, 5000.0, 10000.0]*4
 			end
 	
 		end
 		if attr == "ITER"
 			if tau == 0.01
-				alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 				alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-				kappaStepArray = [0.2, 0.2, 0.2, 0.2, 0.2]
 				kappaMaxArray = [25.0, 25.0, 30.0, 30.0, 30.0]
 			end
 			if tau == 0.0001
-				alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 				alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-				kappaStepArray = [0.2, 0.2, 0.2, 0.2, 0.2]
 				kappaMaxArray = [25.0, 25.0, 30.0, 30.0, 30.0]
 			end
 		end
 	end
 	i = Int(log2(dim))
-	return alphaStepArray[i], alphaMaxArray[i], kappaStepArray[i], kappaMaxArray[i]
+	return alphaMaxArray[i], kappaMaxArray[i]
 end
 
 #specific function to plot data and performance profile to compare static and dynamic runs
@@ -128,9 +110,9 @@ function Benchmarker(attr::String, allRuns::Array{Run_t,1})
 		outputName = "dim_$(n)_tau_$(tau)_n_max_$(nb2nBlock)"
 		Title = "\$n = $(n), \\tau = $(tau), n_p^{max} = $(nb2nBlock) \\times 2n \$"
 		
-		alphaStep, alphaMax, kappaStep, kappaMax = SetAlphaKappa(attr,nb2nBlock, n, tau)
+		alphaMax, kappaMax = SetAlphaKappa(attr,nb2nBlock, n, tau)
 
 
-		PlotProfile(attr, tau, runs, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolder, outputName, Title)
+		PlotProfile(attr, tau, runs, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolder, outputName, Title)
 	end
 end

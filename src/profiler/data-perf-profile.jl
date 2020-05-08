@@ -45,7 +45,7 @@ end
 #returns the number of solvers and problems based on the runs given as parameters
 #looking to run.poll_strategy min and max; run.pb_num min and max and computes the product of the differences - 1
 #suppose that there are no gap in slover and pb list : if there are k solvers, there are indexed from 1 to k, if there are p problems, there are indexed form 1 to p
-function GetNbSolversProblems(runs)
+function GetNbSolversProblems(runs::Array{Run_t,1})
 	numSolverMax = -Inf
 	numSolverMin = Inf
 	numPbMax = -Inf

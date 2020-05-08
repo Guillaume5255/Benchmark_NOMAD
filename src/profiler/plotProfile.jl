@@ -1,5 +1,5 @@
 include("data-perf-profile.jl")
-
+using Colors
 using Plots
 pgfplots()
 #gr()
@@ -48,8 +48,11 @@ function SetRealPbNumber(runs::Array{Run_t,1})
 end
 
 #generic function that plots the profiles made on some runs in a specific window 
-function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaStep::Float64, alphaMax::Float64, kappaStep::Float64, kappaMax::Float64, algoNames::Array{String, 1}, algoColors::Array{Symbol, 1}, outputFolder::String, outputName::String, Title::String)
-
+function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax::Float64, kappaMax::Float64, algoNames::Array{String, 1}, algoColors::Array{Symbol, 1}, outputFolder::String, outputName::String, Title::String)
+	if size(algoColors)[1] == 0
+		algoColors = distinguishable_colors(size(algoNames)[1])
+	end
+	
 	tps_matrix = tpsMatrix(tau,runs,attr)
 	rps_matrix = rpsMatrix(tps_matrix) 
 	nbProblems = size(tps_matrix)[1]
@@ -65,8 +68,12 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaStep
 		end
 	end
 
-	alphaPP = 0.9:alphaStep:alphaMax
-	kappaDP = 0.0:kappaStep:kappaMax
+	alphaMin = 0.9
+	kappaMin = 0.0
+	alphaStep = (alphaMax-alphaMin)/150.0
+	kappaStep = (kappaMax-kappaMin)/150.0
+	alphaPP = alphaMin:alphaStep:alphaMax
+	kappaDP = kappaMin:kappaStep:kappaMax
     
 	legendPos = :bottomright
 	PPplot = plot(dpi=300)

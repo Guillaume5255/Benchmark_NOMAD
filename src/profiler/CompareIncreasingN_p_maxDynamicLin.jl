@@ -37,42 +37,32 @@ function Preprocess()
 end
 
 function SetAlphaKappa(attr::String, dim::Int, tau::Float64)
-	alphaStepArray = [] #pp
 	alphaMaxArray = []
-	kappaStepArray = [] #dp
 	kappaMaxArray = []
 
 	if attr == "EVAL"
 		if tau == 0.01
-			alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
 			alphaMaxArray = [10.0, 20.0, 25.0, 20.0, 25.0]
-			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
 			kappaMaxArray = [150.0, 750.0, 2000.0, 2500.0, 2500.0]
 		end
 		if tau == 0.0001
-			alphaStepArray = [0.1, 0.2, 0.2, 0.2, 0.2]
 			alphaMaxArray = [10.0, 25.0, 25.0, 25.0, 25.0 ]
-			kappaStepArray = [1.0, 5.0, 10.0, 10.0, 10.0]
 			kappaMaxArray = [300.0, 2000.0, 2000.0, 2500.0, 2500.0]
 		end
 
 	end
 	if attr == "ITER"
 		if tau == 0.01
-			alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 			alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-			kappaStepArray = [0.2, 0.5, 1.0, 1.0, 2.0]
 			kappaMaxArray = [35.0, 50.0, 100.0, 200.0, 300.0]
 		end
 		if tau == 0.0001 #0.001
-			alphaStepArray = [0.1, 0.1, 0.1, 0.1, 0.1]
 			alphaMaxArray = [15.0, 15.0, 10.0, 15.0, 15.0]
-			kappaStepArray = [0.2, 0.5, 1.0, 1.0, 2.0]
 			kappaMaxArray = [35.0, 50.0, 100.0, 200.0, 300.0]
 		end
 	end
 	i = Int(log2(dim))
-	return alphaStepArray[i], alphaMaxArray[i], kappaStepArray[i], kappaMaxArray[i]
+	return alphaMaxArray[i], kappaMaxArray[i]
 end
 
 #specific function to plot data and performance profile to compare static and dynamic runs
@@ -91,10 +81,10 @@ function Benchmarker(attr::String, OignonRuns::Array{Run_t,1}, EnrichedRuns::Arr
 		outputName = "dim_$(n)_tau_$(tau)"
 		Title = "\$n = $(n), \\tau = $(tau)\$"
 		
-		alphaStep, alphaMax, kappaStep, kappaMax = SetAlphaKappa(attr, n, tau)
+		alphaMax, kappaMax = SetAlphaKappa(attr, n, tau)
 
-		PlotProfile(attr, tau, filteredOignonRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderOignon, outputName, Title)
-		PlotProfile(attr, tau, filteredEnrichedRuns, alphaStep, alphaMax, kappaStep, kappaMax, AlgoNames, AlgoColors, outputFolderEnriched, outputName, Title)
+		PlotProfile(attr, tau, filteredOignonRuns, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolderOignon, outputName, Title)
+		PlotProfile(attr, tau, filteredEnrichedRuns, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolderEnriched, outputName, Title)
 
 	end
 end
