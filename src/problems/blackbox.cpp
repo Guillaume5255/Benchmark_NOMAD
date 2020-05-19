@@ -96,17 +96,30 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 		case 25:
 			std::cout<< "seed has no effect on this problem\n";
 			if (_n != 8){ 
-				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this will not work.\n");
+				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this is not possible.\n");
 			}
 			else{
-				_x0[0]=54.0;
-				_x0[1]=66.0;
-				_x0[2]=86.0;
-				_x0[3]=8.0;
-				_x0[4]=29;
-				_x0[5]=51;
-				_x0[6]=32;
-				_x0[7]=15;
+				std::string pathToInitialPointsFile = "STYRENE/points/startingPointsMinDist20.txt";
+				//this file contains differents starting points for the STYRENE problem, they were generated using startingPointStyrene.cpp 			
+				std::string point = "";
+    				ifstream startingPoints;
+				startingPoints.open(pathToInitialPointsFile);
+				int line_no = 0;
+				while (line_no != pb_seed+1 && getline(startingPoints, point)) {//we keep reading the file while we are not at the good line and that there is still lines to read
+				    ++line_no;
+				}
+				
+				std::string delimiter = " "; // how coordiantes are separated
+				size_t pos = 0;
+				std::string xi; // coordinate i of point
+				int i = 0;
+				while ((pos = point.find(delimiter)) != std::string::npos && i<8) { // we cut the string at " " delimiters to get each coordinates
+					xi = point.substr(0, pos);
+					point.erase(0, pos + delimiter.length());
+					_x0[i] = std::stod(xi);
+					++i;
+				}
+
 			}
 			break;
 
@@ -764,7 +777,8 @@ double Blackbox::p24(std::vector<double> x){
 string Blackbox::styrene(std::vector<double> x){
 
 	size_t dim = 8; // styrene is of dim 8
-	std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe ";
+	//std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe "; // to use when working with runner/benchmarker.exe
+	std::string  cmd = "./STYRENE/bb/truth.exe "; //to use when blackbox is run from /problems directory
 	for(size_t i = 0 ;i<dim; i++){
 		cmd+=std::to_string(x[i])+" ";
 	}

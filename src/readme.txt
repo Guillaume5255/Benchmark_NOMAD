@@ -1,6 +1,6 @@
 here are the files needed to run NOMAD 4 with the implementation of Multi-poll, Oignon-poll and Enriched-poll.
 
-problems/ : test problems and real blackbox problems (styrene)
+problems/ : test problems and real blackbox problems (STYRENE)
 runner/ : c++ and .sh files : to run NOMAD 4
 profiler/ : .jl files : to exploit data.
 

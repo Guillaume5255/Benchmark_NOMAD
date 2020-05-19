@@ -1,7 +1,7 @@
-This is LuaTeX, Version 1.0.4 (TeX Live 2017/Debian)  (format=lualatex 2020.2.24)  8 MAY 2020 00:08
+This is LuaTeX, Version 1.0.4 (TeX Live 2017/Debian)  (format=lualatex 2020.2.24)  17 MAY 2020 11:10
  system commands enabled.
-**./tmpnwSH9T/tikzpicture.tex
-(./tmpnwSH9T/tikzpicture.tex
+**./tmpmCrryL/tikzpicture.tex
+(./tmpmCrryL/tikzpicture.tex
 LaTeX2e <2017-04-15>
 Lua module: luaotfload-main 2017/01/29 2.80001 OpenType layout system.
 Lua module: lualibs 2017-02-01 2.5 ConTeXt Lua standard libraries.
@@ -34,7 +34,7 @@ Inserting `luaotfload.aux.set_capheight' at position 3 in `luaotfload.patch_font
 '.
 Inserting `luaotfload.rewrite_fontname' at position 4 in `luaotfload.patch_font'
 .
-luaotfload | main : initialization completed in 0.304 seconds
+luaotfload | main : initialization completed in 0.276 seconds
 Babel <3.18> and hyphenation patterns for 1 language(s) loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/standalone/standalone.cls
 Document Class: standalone 2015/07/15 v1.2 Class to compile TeX sub-files standa
@@ -603,63 +603,63 @@ Package pgfplots notification 'compat/show suggested version=true': document has
 (load luc: /home/guillaume/.texlive2017/texmf-var/luatex-cache/generic/fonts/otl
 /lmroman8-regular.luc)
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 1020.
+(Font)              <8> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 1020.
+(Font)              <6> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 1020.
+(Font)              <5> on input line 525.
 (load luc: /home/guillaume/.texlive2017/texmf-var/luatex-cache/generic/fonts/otl
 /lmroman12-regular.luc)
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 1020.
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 525.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 1020.
+(Font)              size <5> substituted on input line 525.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <5.5> not available
-(Font)              size <5> substituted on input line 1020.
+(Font)              size <5> substituted on input line 525.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 1020.
+(Font)              size <5> substituted on input line 525.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <11> on input line 1020.
+(Font)              <11> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7.69997> on input line 1020.
+(Font)              <7.69997> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5.5> on input line 1020.
-LaTeX Font Info:    Calculating math sizes for size <14> on input line 1020.
+(Font)              <5.5> on input line 525.
+LaTeX Font Info:    Calculating math sizes for size <14> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14> on input line 1020.
+(Font)              <14> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9.79996> on input line 1020.
+(Font)              <9.79996> on input line 525.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 1020.
+(Font)              <7> on input line 525.
 ! Undefined control sequence.
 \sa@placebox ->\newpage \global \pdfpagewidth 
                                               =\wd \sa@box \global \pdfpageh...
-l.1022 \end{tikzpicture}
-                      
+l.527 \end{tikzpicture}
+                     
 ? 
 ! Emergency stop.
 \sa@placebox ->\newpage \global \pdfpagewidth 
                                               =\wd \sa@box \global \pdfpageh...
-l.1022 \end{tikzpicture}
-                      
+l.527 \end{tikzpicture}
+                     
 End of file on the terminal!
 
 
 
 Here is how much of LuaTeX's memory you used:
- 23241 strings out of 494480
- 100000,953878 words of node,token memory allocated 24958 words of node memory still in use:
-   186 hlist, 2 vlist, 1 rule, 7 disc, 1 dir, 26 math, 415 glue, 10 kern, 188 gl
-yph, 2786 attribute, 45 glue_spec, 2786 attribute_list, 2 if_stack, 1 write, 244
-1 pdf_literal, 37 pdf_colorstack nodes
-   avail lists: 2:3,3:1,5:26,6:1,7:2,8:21
- 26589 multiletter control sequences out of 65536+600000
+ 23240 strings out of 494480
+ 100000,953878 words of node,token memory allocated 16027 words of node memory still in use:
+   141 hlist, 2 vlist, 1 rule, 9 disc, 1 dir, 24 math, 317 glue, 9 kern, 143 gly
+ph, 1678 attribute, 45 glue_spec, 1678 attribute_list, 2 if_stack, 1 write, 1410
+ pdf_literal, 25 pdf_colorstack nodes
+   avail lists: 2:3,3:1,5:26,6:1,7:2,8:22
+ 26588 multiletter control sequences out of 65536+600000
  49 fonts using 3051127 bytes
- 74i,18n,128p,842b,2188s stack positions out of 5000i,500n,10000p,200000b,100000s
+ 74i,18n,128p,862b,2188s stack positions out of 5000i,500n,10000p,200000b,100000s
 !  ==> Fatal error occurred, no output PDF file produced!

@@ -108,7 +108,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
 	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"EXPONENTIAL"); //"EXPONENTIAL"
 	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
 
@@ -141,7 +141,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 		p.getRunParams()->setAttributeValue("ENRICHED_POLL",true);
 		p.getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",nb2nBlock);
-		p.getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(0));
+		p.getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(1));
 		p.getRunParams()->setAttributeValue("FRAME_UB",NOMAD::Double(1));
 
 		name = name + std::to_string(nb2nBlock)+"_";
@@ -235,7 +235,7 @@ int main (int argc, char **argv)
 	int DIM_MIN=2;
 	int PB_NUM_MIN=1;
 	int PB_SEED_MIN=0;
-	int POLL_STRATEGY_MIN=3;
+	int POLL_STRATEGY_MIN=4;
 	int NB_2N_BLOCK_MIN=2;
 
 	int DIM_MAX=65;
