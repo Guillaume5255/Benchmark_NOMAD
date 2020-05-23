@@ -29,6 +29,7 @@ public:
 	std::vector<double> getXopt(); //only working for test problems
 
 private: //to comment when doing unit test 
+	string styreneDir = "/home/guillaume/Bureau/Benchmark_NOMAD/src/problems/STYRENE/";
 	const int _n,funcNum,pb_seed;	//dimension, problem number and seed for the generation of random matrix
 	double _alpha, _beta, 
 			_fopt = 0.0,

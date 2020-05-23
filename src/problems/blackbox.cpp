@@ -94,12 +94,12 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 			break;
 
 		case 25:
-			std::cout<< "seed has no effect on this problem\n";
+			//std::cout<< "seed has no effect on this problem\n";
 			if (_n != 8){ 
 				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this is not possible.\n");
 			}
 			else{
-				std::string pathToInitialPointsFile = "STYRENE/points/startingPointsMinDist20.txt";
+				std::string pathToInitialPointsFile = styreneDir+"points/startingPointsMinDist20.txt";
 				//this file contains differents starting points for the STYRENE problem, they were generated using startingPointStyrene.cpp 			
 				std::string point = "";
     				ifstream startingPoints;
@@ -778,7 +778,7 @@ string Blackbox::styrene(std::vector<double> x){
 
 	size_t dim = 8; // styrene is of dim 8
 	//std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe "; // to use when working with runner/benchmarker.exe
-	std::string  cmd = "./STYRENE/bb/truth.exe "; //to use when blackbox is run from /problems directory
+	std::string  cmd = styreneDir+"bb/truth.exe "; //to use when blackbox is run from /problems directory
 	for(size_t i = 0 ;i<dim; i++){
 		cmd+=std::to_string(x[i])+" ";
 	}

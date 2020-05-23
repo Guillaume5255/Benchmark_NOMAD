@@ -36,17 +36,24 @@ public:
 			//auto startEval = omp_get_wtime();
 			auto f = bb->f(xtrue);
 			auto stopEval = omp_get_wtime();
+			std::string bbo = "";
 
 			//evalTime += stopEval - startEval;
 			if (f[0]!='E'){
 				std::ostringstream strs;
 				strs << std::setprecision(10) << std::fixed << stopEval-evalTime<<" "<<f;
-				std::string bbo = strs.str();
-			
-				x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
-
+				bbo = strs.str();
 				eval_ok = true;
 			}
+			else{	
+				
+				std::ostringstream strs;
+				strs << std::setprecision(10) << std::fixed << stopEval-evalTime;
+				bbo = strs.str();
+				for(int i = 0; i<12; i++)
+					bbo = bbo + " 1e+20";
+			}
+			x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"),NOMAD::EvalType::BB, eval_ok);
 		}
 		catch (std::exception &e)
 		{
@@ -66,8 +73,9 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 {
 	// parameters creation
 
-	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",0);
+	p.getDispParams()->setAttributeValue("DISPLAY_DEGREE",4);
 	p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("ITER EVAL BBO"));
+    	p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", false);
 	p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
 	p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE",false);
 
@@ -89,7 +97,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false);
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); //###############" to disable when doing non opportunistic tests
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 
@@ -99,18 +107,24 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("MAX_ITERATIONS", (size_t)nbIter);
 	p.getRunParams()->setAttributeValue("MAX_ITERATION_PER_MEGAITERATION",1);
 	p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000));
-	p.getRunParams()->setAttributeValue("NM_SEARCH",false);
-	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
-	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
+
 	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 1 on analytical problems and to np_cpu on real blackboxes
 	p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
 	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
-	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
 
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
-	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"EXPONENTIAL"); //"EXPONENTIAL"
-	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
+//############## to disable to get only poll #################
+	//p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));
+	p.getRunParams()->setAttributeValue("NM_SEARCH",false); // investigate why it's not working
+	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
+	p.getRunParams()->setAttributeValue("SGTELIB_SEARCH",true);
+	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
+	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",true);
+//############################################################
+
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
+	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //"EXPONENTIAL"
+	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",false);
 
 	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 	switch (poll_strategy)
@@ -141,7 +155,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 		p.getRunParams()->setAttributeValue("ENRICHED_POLL",true);
 		p.getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",nb2nBlock);
-		p.getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(1));
+		p.getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(0));
 		p.getRunParams()->setAttributeValue("FRAME_UB",NOMAD::Double(1));
 
 		name = name + std::to_string(nb2nBlock)+"_";
@@ -232,17 +246,17 @@ int main (int argc, char **argv)
 {
 	bool useArgs = argc >1;
 
-	int DIM_MIN=2;
-	int PB_NUM_MIN=1;
+	int DIM_MIN=8;
+	int PB_NUM_MIN=25;
 	int PB_SEED_MIN=0;
-	int POLL_STRATEGY_MIN=4;
-	int NB_2N_BLOCK_MIN=2;
+	int POLL_STRATEGY_MIN=3;
+	int NB_2N_BLOCK_MIN=8;
 
-	int DIM_MAX=65;
-	int PB_NUM_MAX=25;
-	int PB_SEED_MAX=5;
-	int POLL_STRATEGY_MAX=5;
-	int NB_2N_BLOCK_MAX=65;
+	int DIM_MAX=9;
+	int PB_NUM_MAX=26;
+	int PB_SEED_MAX=1;
+	int POLL_STRATEGY_MAX=4;
+	int NB_2N_BLOCK_MAX=9;
 
 	if (useArgs){
 		DIM_MIN = atoi(argv[1]);
