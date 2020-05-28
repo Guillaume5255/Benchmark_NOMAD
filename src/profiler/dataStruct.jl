@@ -11,6 +11,8 @@ mutable struct Run_t
 	
 end
 
+Base.copy(run::Run_t) = Run_t(run.dim, run.pb_num, run.pb_seed, run.poll_strategy, run.nb_2n_blocks, run.iter, run.eval_nb, run.eval_time, run.eval_f)
+
 mutable struct Iter_t
 	run::Run_t
 	f_k::Array{Float64,1} #array with as much elements as the number of iterations, element k is the best value of f obtainted at iteration k

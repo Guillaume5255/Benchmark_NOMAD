@@ -113,4 +113,44 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 	println("done")
 end
 
+# if size(algoName) = s, run.poll_strategy must be in [[1,s]]
+function ConvergencePlot(attr::String, runs::Array{Run_t,1}, algoNames::Array{String, 1}, algoColors::Array{Symbol, 1}, outputFolder::String, outputName::String, Title::String)
+	convergencePlot = plot(dpi=300)
+	legendPos = :topright
+	for run in runs
+		s = run.poll_strategy
+		if attr == "EVAL"
+			convergencePlot = plot!(convergencePlot, run.eval_nb, run.eval_f, color=algoColors[s], label = algoNames[s], legend=legendPos, linetype=:steppre, xaxis=:log10)
+			xlabel!(convergencePlot,"évaluations")
+		end
+		if attr == "ITER"
+			convergencePlot = plot!(convergencePlot, run.iter.+1, run.eval_f, color=algoColors[s], label = algoNames[s], legend=legendPos, linetype=:steppre, xaxis=:log10)
+			xlabel!(convergencePlot,"itérations")
+		end
+		if attr == "TIME"
+			convergencePlot = plot!(convergencePlot, run.eval_time, run.eval_f, color=algoColors[s], label = algoNames[s], legend=legendPos, linetype=:steppre, xaxis=:log10)
+			xlabel!(convergencePlot,"temps (s)")
+		end
+		algoNames[s]=""
+	end
+
+
+
+	ylabel!(convergencePlot,"valeur de l'objectif")
+
+	title!(convergencePlot,Title)
+
+	println("saving in $(outputFolder)")
+
+	currentPath = pwd()
+	absolutePath = GetAbsolutePath()
+	cd(absolutePath*outputFolder)
+	
+	savefig(convergencePlot,"cp_"*outputName*".svg")
+    
+	cd(currentPath)
+
+	println("done")
+
+end
 

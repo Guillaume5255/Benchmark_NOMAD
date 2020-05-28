@@ -97,7 +97,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",true); //###############" to disable when doing non opportunistic tests
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); //###############" to disable when doing non opportunistic tests
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 
@@ -114,18 +114,18 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 
 //############## to disable to get only poll #################
-	p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));
+	//p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false); // investigate why it's not working
 	//p.getRunParams()->setAttributeValue("NM_SIMPLEX_INCLUDE_FACTOR",NOMAD::INF_SIZE_T);
-	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",true);
+	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
 	p.getRunParams()->setAttributeValue("SGTELIB_SEARCH",false);
-	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",true);
-	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",true);
+	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
+	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
 //############################################################
 
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
 	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //EXPONENTIAL / LINEAR
-	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
+	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",false);
 
 	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 	switch (poll_strategy)
@@ -251,7 +251,7 @@ int main (int argc, char **argv)
 	int PB_NUM_MIN=25;
 	int PB_SEED_MIN=0;
 	int POLL_STRATEGY_MIN=3;
-	int NB_2N_BLOCK_MIN=2;
+	int NB_2N_BLOCK_MIN=64;
 
 	int DIM_MAX=9;
 	int PB_NUM_MAX=26;
