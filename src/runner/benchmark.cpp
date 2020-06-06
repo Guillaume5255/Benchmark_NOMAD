@@ -97,7 +97,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); //###############" to disable when doing non opportunistic tests
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",true); // deterministic when NB_THREADS_OPENMP = 1
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 
@@ -108,19 +108,19 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("MAX_ITERATION_PER_MEGAITERATION",1);
 	p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000));
 
-	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",3); // to set to 1 on analytical problems and to np_cpu on real blackboxes
+	p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP",1); // to set to 1 on analytical problems and to np_cpu on real blackboxes /!\ non determinist if > 1
 	p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
 	p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 	p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES",false);
 
 //############## to disable to get only poll #################
-	//p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));
+	//p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));//not deterministic
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false); // investigate why it's not working
 	//p.getRunParams()->setAttributeValue("NM_SIMPLEX_INCLUDE_FACTOR",NOMAD::INF_SIZE_T);
-	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",false);
-	p.getRunParams()->setAttributeValue("SGTELIB_SEARCH",false);
-	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
-	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
+	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",true);
+	p.getRunParams()->setAttributeValue("SGTELIB_SEARCH",true); //not deterministic
+	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",true);
+	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",true);
 //############################################################
 
 	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);

@@ -70,8 +70,18 @@ function Preprocess()
 	end
 
 
-	Oignon = [runsClassic; oignonRunsStatic; oignonRunsDynamicWithoutMemoryLin; oignonRunsDynamicWithoutMemoryExp; oignonRunsDynamicWithMemoryLin; oignonRunsDynamicWithMemoryExp]
-	Enriched = [runsClassic; enrichedRunsStatic; enrichedRunsDynamicWithoutMemoryLin; enrichedRunsDynamicWithoutMemoryExp; enrichedRunsDynamicWithMemoryLin; enrichedRunsDynamicWithMemoryExp]
+	Oignon = [runsClassic;
+			oignonRunsStatic;
+			oignonRunsDynamicWithoutMemoryLin;
+			oignonRunsDynamicWithoutMemoryExp;
+			oignonRunsDynamicWithMemoryLin;
+			oignonRunsDynamicWithMemoryExp]
+	Enriched = [runsClassic;
+			enrichedRunsStatic;
+			enrichedRunsDynamicWithoutMemoryLin;
+			enrichedRunsDynamicWithoutMemoryExp;
+			enrichedRunsDynamicWithMemoryLin;
+			enrichedRunsDynamicWithMemoryExp]
 	
 	#we rebuild the pb number given the seed
 	SetRealPbNumber(Oignon) 

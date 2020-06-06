@@ -414,6 +414,87 @@ end
 
 
 
+function getStats(runs::Run_t, pollStrategy::Int64, nb2nblock::Int64)
+	maxVal = 0.0
+	minVal = Inf
+	mean = 0.0
+	sigma = 0.0
+	runs = FilterRuns("POLL_STRATEGY", pollStrategy, runs)
+	runs = FilterRuns("NB_2N_BLOCK", nb2nblock, runs)
+	counter = 0
+	for run in runs
+		counter += 1 
+		if run.eval_f[end]>maxVal
+			maxVal = run.eval_f[end]
+		end
+		if run.eval_f[end]<minVal
+			minVal = run.eval_f[end]
+		end
+		mean += run.eval_f[end]
+	end
+	mean = mean/counter
+	for run in runs
+		sigma += (mean - run.eval_f[end])(mean - run.eval_f[end])
+	end
+	sigma = sqrt(sigma)/(counter-1)
+	return counter, maxValue, minValue, mean, sigma
+end
+
+
+function plotStats(runs::Run_t, dim::Int64)
+	markers = [:circle, :square, :utriangle, :dtriangle]
+	msize = 3
+	mcontour = 0.2
+
+	colors = [:black, :blue, :red, :yellow, :green]
+	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
+	legendPos = :topright
+	Xgrad = :log2
+	Ygrad = :log2
+	p = plot(dpi=300)
+	for ps in [1 2 3 4 5]
+		for nb2nblock in [1 2 4 8 16 32 64 2*dim+1]
+			counter, maxValue, minValue, mean, sigma = getStats(runs, ps, nb2nblock)
+			if counter > 0 #if there exists runs for this combinaison of poll strategy and nb of 2n block
+				p = plot!(p, [nb2nblock], [mean], seriestype=:scatter, color = colors[ps], marker = markers[1], markersize = msize, markerstrokewidth = mcontour, label = pollStr[ps],legend=legendPos )
+				p = plot!(p, [nb2nblock], [maxValue], seriestype=:scatter, color = colors[ps], marker = markers[3], markersize = msize, markerstrokewidth = mcontour, label = "")
+				p = plot!(p, [nb2nblock], [maxValue], seriestype=:scatter, color = colors[ps], marker = markers[3], markersize = msize, markerstrokewidth = mcontour, label = "")
+				pollStr[ps] = ""
+			end
+		end
+	end
+	
+	Title = "dimension $(dim)"
+	title!(Title)
+	xlabel!("nombre de bases positives")
+	ylabel!("valeurs optimales moyennes")
+	filename = "../plots/pb-test/static/mean-final-value-O-E"
+	#filename = "../plots/pb-test/dynamic/mean-final-value"
+	#filename = "../plots/pb-bb-styrene/mean-final-value"
+
+	println("saving in $(filename)")
+
+	cd(filename)
+	savefig(p,"mean_$(dim).svg")
+	cd("../../../../src/")
+	println("done")
+
+end
+
+function InfluenceOfNbPoints()
+	dir0="/run-pc-perso-confinement/run-pb-test/static"
+	println("extracting data from $(dir0)")
+	allRuns = ExtractData(dir0);
+	println("done")
+
+	for dim in [2 4 8 16 32 64]
+		runs = FilterRuns("DIM",dim, allRuns)
+		plotStats(runs,dim)
+	end
+end
+	
+
+
 
 
 function ObjectifEvolutionPerIteration(dim::Int64,useLogScale::Bool, allRuns::Array{Run_t,1}, nb2nBlock::Int64)

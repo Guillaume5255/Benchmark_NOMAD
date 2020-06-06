@@ -61,29 +61,48 @@ function ExtractData(dir::String)
 			runData[:,3],
 			runData[:,4])
 			nbRunsExtracted = nbRunsExtracted +1
-			#if runAttr[3] == "25"
-			#	run=Run_t(
-			#	parse(Int,runAttr[2]),
-			#	parse(Int,runAttr[3]),
-			#	parse(Int,runAttr[4]),
-			#	parse(Int,runAttr[5]),
-			#	parse(Int,runAttr[6]),
-			#	runData[:,1],
-			#	runData[:,3],
-			#	runData[:,2])
-			#else
-			#	run=Run_t(
-			#	parse(Int,runAttr[2]),
-			#	parse(Int,runAttr[3]),
-			#	parse(Int,runAttr[4]),
-			#	parse(Int,runAttr[5]),
-			#	parse(Int,runAttr[6]),
-			#	runData[:,1],
-			#	runData[:,2],
-			#	runData[:,3])
-			#end
-			#println("minimum f value : "*string(minimum(run.eval_f)))
-			#println("run_"*string(run.pb_num)*"_"*string(run.pb_seed)*"_"*string(run.poll_strategy))
+			push!(runs, run)
+		end
+	end
+	println("Extracted $(nbRunsExtracted) runs")
+
+	return runs
+end
+
+function OldExtractData(dir::String) 
+	#fills an array of Run_t objects, each object contains the data of the run : 
+	#wich dimension, which problem, which seed, which strategy, which number of 2n blocks
+	#all files are of the format run_dim_pbNumber_pbSeed_pollStrategy_nbOf2nBlocks_.txt
+	# all problems are scalable (dim \in N^*)
+	#there are 24 problems (pbNumber \in [[1;24]])
+	#pbSeed \in N
+	#pollStrategy \in [[1;4]] 
+	#	1:classic poll
+	#	2:multi poll
+	#	3:oignon poll
+	#	4:enriched poll
+	absolutePath = GetAbsolutePath()
+	dir = absolutePath*dir
+	runsList = readdir(dir)
+	runs = Array{Run_t,1}([])
+	nbRunsExtracted = 0
+	for runName in runsList
+		#println(runName)
+		runAttr=split(runName, "_")
+		if runAttr[1]=="run" #we only try to read run files
+			runData = readdlm(dir*"/"*runName)
+
+			run=Run_t(
+			parse(Int,runAttr[2]),
+			parse(Int,runAttr[3]),
+			parse(Int,runAttr[4]),
+			parse(Int,runAttr[5]),
+			parse(Int,runAttr[6]),
+			[0],
+			runData[:,1],
+			runData[:,3],
+			runData[:,2])
+			nbRunsExtracted = nbRunsExtracted +1
 			push!(runs, run)
 		end
 	end
