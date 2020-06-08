@@ -99,8 +99,28 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 				throw std::runtime_error("trying to build pb 25(styrene) with dimension != 8, this is not possible.\n");
 			}
 			else{
-				std::string pathToInitialPointsFile = styreneDir+"points/startingPointsMinDist20.txt";
-				//this file contains differents starting points for the STYRENE problem, they were generated using startingPointStyrene.cpp 			
+				//we first try to get the path to STYRENE directory
+				// we execute the commande and we store the result in pipe
+				std::array<char, 128> buffer;
+				string currentPath = "";
+				string cmdToGetPath = "pwd";
+				std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmdToGetPath.c_str(), "r"), pclose);
+				if (!pipe) {
+					throw std::runtime_error("popen() failed! : impossible to read current path");
+				}
+
+				while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+					currentPath += buffer.data();
+				}
+				//we now have to split the current path at 'Benchmark_NOMAD' and build STYRENE path
+
+				std::string pathDelimiter = "Benchmark_NOMAD";
+				std::string rootPath = currentPath.substr(0, currentPath.find(pathDelimiter));		
+				styreneDir = rootPath+pathDelimiter+"/src/problems/STYRENE";
+				//this file contains differents starting points for the STYRENE problem
+				//they were generated using startingPointStyrene.cpp
+				std::string pathToInitialPointsFile = styreneDir+"/points/startingPointsMinDist20.txt";
+				
 				std::string point = "";
     				ifstream startingPoints;
 				startingPoints.open(pathToInitialPointsFile);
@@ -778,7 +798,7 @@ string Blackbox::styrene(std::vector<double> x){
 
 	size_t dim = 8; // styrene is of dim 8
 	//std::string  cmd = "./../src/problems/STYRENE/bb/truth.exe "; // to use when working with runner/benchmarker.exe
-	std::string  cmd = styreneDir+"bb/truth.exe "; //to use when blackbox is run from /problems directory
+	std::string  cmd = styreneDir+"/bb/truth.exe "; //to use when blackbox is run from /problems directory
 	for(size_t i = 0 ;i<dim; i++){
 		cmd+=std::to_string(x[i])+" ";
 	}
