@@ -123,9 +123,9 @@ void initParams(NOMAD::AllParameters &p, size_t n, int pb_num, int pb_seed, int 
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
 //############################################################
 
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
 	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //EXPONENTIAL / LINEAR
-	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",false);
+	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
 
 	auto name = "run_"+std::to_string(n)+"_"+std::to_string(pb_num)+"_"+std::to_string(pb_seed)+"_"+std::to_string(poll_strategy)+"_";
 	switch (poll_strategy)
