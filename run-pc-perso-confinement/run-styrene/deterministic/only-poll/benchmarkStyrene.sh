@@ -3,6 +3,9 @@
 #parentFolder=$PWD
 #Folders="/dynamic/sans-mem/lin,/dynamic/sans-mem/exp,/dynamic/avec-mem/lin,/dynamic/avec-mem/exp,/classical-poll,/static"
 
+module unload gcc/9.1.0
+module load gcc/7.2.0
+
 DIM=8
 PB_NUM=25
 EXE="benchmarker.exe"
@@ -26,21 +29,15 @@ runner () {
 	CMD="$PWD/$EXE"
 	for pb_seed in `seq 0 0`;
 	do
-		for poll_strategy in `seq 3 4`;
-		do
-			echo $CMD $DIM $PB_NUM $pb_seed $poll_strategy $nb_2n_block
-		done
+		$CMD $DIM $PB_NUM $pb_seed 3 $nb_2n_block &
+		$CMD $DIM $PB_NUM $pb_seed 4 $nb_2n_block
 	done
 	cd $PARENT_PATH
-
 }
 
-#echo "starting 1st batch"
-#classicalPollRunner &
-#runner "dynamic/sans-mem/lin" & 
-#runner "dynamic/sans-mem/exp"
-
-echo "starting 2e batch"
+classicalPollRunner &
+runner "dynamic/sans-mem/lin" &
+runner "dynamic/sans-mem/exp"&
 runner "static" &
 runner "dynamic/avec-mem/lin" &
 runner "dynamic/avec-mem/exp"
