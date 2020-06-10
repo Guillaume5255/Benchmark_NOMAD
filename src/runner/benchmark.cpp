@@ -155,7 +155,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 		p.getRunParams()->setAttributeValue("CLASSICAL_POLL",false);
 
 		p.getRunParams()->setAttributeValue("ENRICHED_POLL",true);
-		p.getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",nb2nBlock);
+		p.getRunParams()->setAttributeValue("NUMBER_OF_2N_BLOCK",(int)nb2nBlock);
 		p.getRunParams()->setAttributeValue("FRAME_LB",NOMAD::Double(0));
 		p.getRunParams()->setAttributeValue("FRAME_UB",NOMAD::Double(1));
 
