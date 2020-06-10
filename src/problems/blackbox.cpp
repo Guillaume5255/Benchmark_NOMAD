@@ -3,7 +3,7 @@
 Blackbox::Blackbox(const int dim, const int functionNumber, const int instance ):_n(dim), funcNum(functionNumber), pb_seed(instance){
 	//std::cout<<"\n Building the blackbox : seed = "<<pb_seed <<"\n";
 	//auto start = omp_get_wtime();
-	srand(pb_seed+2);
+	srand(pb_seed+2);//because srand(0) and srand(1) has special behaviour : see http://www.cplusplus.com/reference/cstdlib/srand/
 	_x0 = RandomDirection(5.0);
 	_xopt = RandomDirection(5.0);
 	_ones = RandomOnesvector();
@@ -100,7 +100,7 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 			}
 			else{
 				//we first try to get the path to STYRENE directory
-				// we execute the commande and we store the result in pipe
+				// we execute the pwd command and we store the result in pipe
 				std::array<char, 128> buffer;
 				string currentPath = "";
 				string cmdToGetPath = "pwd";
@@ -119,7 +119,7 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 				styreneDir = rootPath+pathDelimiter+"/src/problems/STYRENE";
 				//this file contains differents starting points for the STYRENE problem
 				//they were generated using startingPointStyrene.cpp
-				std::string pathToInitialPointsFile = styreneDir+"/points/startingPointsMinDist20.txt";
+				std::string pathToInitialPointsFile = styreneDir+"/points/startingPointsMinDist5.txt";
 				
 				std::string point = "";
     				ifstream startingPoints;
@@ -128,12 +128,14 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 				while (line_no != pb_seed+1 && getline(startingPoints, point)) {//we keep reading the file while we are not at the good line and that there is still lines to read
 				    ++line_no;
 				}
+				if(line_no == 0)
+					throw std::runtime_error(pathToInitialPointsFile+" empty or at the wrong location, compile and run src/problems/startingPointStyrene.cpp to generate it.");
 				
 				std::string delimiter = " "; // how coordiantes are separated
 				size_t pos = 0;
 				std::string xi; // coordinate i of point
 				int i = 0;
-				while ((pos = point.find(delimiter)) != std::string::npos && i<8) { // we cut the string at " " delimiters to get each coordinates
+				while ((pos = point.find(delimiter)) != std::string::npos && i<_n) { // we cut the string at " " delimiters to get each coordinates
 					xi = point.substr(0, pos);
 					point.erase(0, pos + delimiter.length());
 					_x0[i] = std::stod(xi);
@@ -902,7 +904,7 @@ string Blackbox::blackbox(std::vector<double> x) {
 	
 // we can add call to external blackbox, like styrene with syscall
 	default:
-		std::cout<<"problem no "<< funcNum <<"not yet implemented.\n";
+		throw std::runtime_error("problem no "+std::to_string(funcNum)+"not yet implemented.\n");
 		return std::to_string(-1.0);
 		break;
 	}

@@ -103,9 +103,9 @@ end
 function plotBenchmark()
 	featureNames = ["onlyPoll", "allEnabled"]
 	featureDirs = ["/only-poll", "/all-features-enabled"]
-	determinismType = "/nondeterministic" #"/deterministic"# 
+	determinismType = "/deterministic" #"/deterministic"# 
 	strategies = ["Oignon","Enrichie"]
-	for featureType in [1, 2]
+	for featureType in [1]#, 2]
 		runs = Preprocess(determinismType,featureDirs[featureType])# array of arrays of runs : Preprocess(...) = [Oignon, Enriched]
 		for attr in ["EVAL","ITER","TIME"]
 			for runType in [1,2]
