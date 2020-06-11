@@ -86,7 +86,7 @@ function benchmarker(runs::Array{Run_t,1},pollStr::String,attr::String,feature::
 
 	Title = "STYRENE : \$n = 8, n_p^{max} = 64 \\times 2n\$"
 	outputFolder = "/plots/pb-bb-styrene/intensificationInfluence/convergence/$(attr)"
-	outputName = "$(feature)_$(pollStr)"
+	outputName = "$(feature)_$(pollStr)_$(attr)"
 	#list of algoriths used in profiles, the order is important :
 	#AlgoNames[i] will be the name of the algoritm with poll strategy i (set in Preprocess ()) 
 	AlgoNames = ["Classique",
@@ -105,7 +105,7 @@ function plotBenchmark()
 	featureDirs = ["/only-poll", "/all-features-enabled"]
 	determinismType = "/deterministic" #"/deterministic"# 
 	strategies = ["Oignon","Enrichie"]
-	for featureType in [1]#, 2]
+	for featureType in [1, 2]
 		runs = Preprocess(determinismType,featureDirs[featureType])# array of arrays of runs : Preprocess(...) = [Oignon, Enriched]
 		for attr in ["EVAL","ITER","TIME"]
 			for runType in [1,2]
