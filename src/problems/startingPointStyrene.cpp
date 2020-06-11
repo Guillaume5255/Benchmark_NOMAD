@@ -5,9 +5,9 @@
 //#include <cmath>
 
 
-int minimalDifference(std::vector<int> x, std::vector<int> y){ // computes min{|xi-yi| : i=1..n}
-	int minDiff = 1000000000;
-	int diff;
+double minimalDifference(std::vector<double> x, std::vector<double> y){ // computes min{|xi-yi| : i=1..n}
+	double minDiff = 1000000000;
+	double diff;
 	size_t dim = x.size();
 	for(size_t i = 0; i<dim; i++){
 		diff = std::abs(x[i]-y[i]); 
@@ -18,10 +18,10 @@ int minimalDifference(std::vector<int> x, std::vector<int> y){ // computes min{|
 }
 
 
-int distanceToSet(std::vector<std::vector<int>> A, std::vector<int> x){ //computes min{ min{|ai-yi| : i=1..n} : ai in A}
-	int minDistance = 1000000000;	
+double distanceToSet(std::vector<std::vector<double>> A, std::vector<double> x){ //computes min{ min{|ai-yi| : i=1..n} : ai in A}
+	double minDistance = 1000000000;	
 	for(size_t i = 0; i<A.size(); i++){
-		int dist = minimalDifference(A[i], x);
+		double dist = minimalDifference(A[i], x);
 		if(dist < minDistance)
 			minDistance = dist;
 	}
@@ -29,19 +29,19 @@ int distanceToSet(std::vector<std::vector<int>> A, std::vector<int> x){ //comput
 }
 	
 
-std::vector<int> generateRandomPoint(size_t n, int lb, int ub){ //generates a point in the box [lb,ub]^n with integer coordinates
-	std::vector<int> randomPoint(n);
+std::vector<double> generateRandomPoint(size_t n, double lb, double ub){ //generates a point in the box [lb,ub]^n with integer coordinates
+	std::vector<double> randomPoint(n);
 	for(size_t i = 0; i<n ; i++)
-		randomPoint[i] = lb + rand()%(ub-lb+1);
+		randomPoint[i] = lb + (double)(rand()%(int)(ub-lb+1));
 	return randomPoint;
 }
 
-bool checkFeasibility(std::vector<int> x, Blackbox bb){ // check if x is feasible by aggregating constraints
+bool checkFeasibility(std::vector<double> x, Blackbox bb){ // check if x is feasible by aggregating constraints
 	bool isFeasible = false;
 	std::vector<double> xdouble(x.begin(), x.end());
 	std::string bbo = bb.f(xdouble);
 	if(!(bbo[0]=='E')){
-		std::cout<< bbo <<"\n";
+		//std::cout<< bbo <<"\n";
 		std::string delimiter = " ";
 		size_t pos = 0;
 		std::string token;
@@ -62,13 +62,14 @@ bool checkFeasibility(std::vector<int> x, Blackbox bb){ // check if x is feasibl
 			std::cout<<"feasible output :\t " <<bboBackup<<"\n";
 		}	
 	}
-	else{
-		std::cout<<"ERROR\n";
-	}
+	//else{
+		//std::cout<<"ERROR\n";
+	//}
 	return isFeasible;
 }
 
-void writePoint(std::vector<int> x, size_t nbPointsGenerated, size_t evaluationNumber, ofstream &startingPointsFile){
+void writePoint(std::vector<double> x, size_t nbPointsGenerated, size_t evaluationNumber, std::string pathToInitialPointsFile, size_t &nbPointsAdded){
+	ofstream startingPointsFile(pathToInitialPointsFile, std::ios_base::app);	
 	size_t dim = x.size();
 	std::cout<<"added point :\t";
 	for(size_t i = 0; i< dim; i++){
@@ -79,15 +80,40 @@ void writePoint(std::vector<int> x, size_t nbPointsGenerated, size_t evaluationN
 	//startingPointsFile.close();
 	std::cout<<"\n"<<"after " << nbPointsGenerated << " points generated and "
 				  << evaluationNumber << " evaluations\n\n";
+	nbPointsAdded++;
+	return;
+}
+
+
+void readPointsFromFile(std::string pathToInitialPointsFile, std::vector<std::vector<double>> &startingPointSet){
+    	ifstream startingPoints;
+	startingPoints.open(pathToInitialPointsFile);
+	std::string line;
+	while (getline(startingPoints, line)) {//we keep reading the file while we are not at the good line and that there is still lines to read
+		std::vector<double> x(8);
+		std::string point = "";
+		std::string delimiter = " "; // how coordiantes are separated
+		size_t pos = 0;
+		std::string xi; // coordinate i of point
+		size_t i = 0;
+		while ((pos = point.find(delimiter)) != std::string::npos && i<8) { // we cut the string at " " delimiters to get each coordinates
+			xi = point.substr(0, pos);
+			point.erase(0, pos + delimiter.length());
+			x[i] = std::stod(xi);
+			++i;
+		}
+		startingPointSet.push_back(x);
+	}
+	startingPoints.close();
 	return;
 }
 
 int main(){
 	size_t dim = 8;
-	int lb = 0;
-	int ub = 100;
+	double lb = 0;
+	double ub = 100;
 
-	std::vector<int> x0(dim);
+	std::vector<double> x0(dim);
 	x0[0]=54;
 	x0[1]=66;
 	x0[2]=86;
@@ -96,29 +122,37 @@ int main(){
 	x0[5]=51;
 	x0[6]=32;
 	x0[7]=15;
-	int minDist = 5;
-	std::vector<std::vector<int>> startingPointSet(1,x0);
-	ofstream startingPointsFile("STYRENE/points/startingPointsMinDist"+std::to_string((int)minDist)+".txt", std::ios_base::app);
 
+	double minDist = 5;
 	size_t maxNbStartingPoint = 10;
-
 
 	size_t evaluationNumber = 0; //we did not evaluated x0
 	size_t nbPointsGenerated = 1; // but we generated it
+	size_t nbPointsAdded = 0;//
 
-	writePoint(x0, nbPointsGenerated, evaluationNumber, startingPointsFile);
-	size_t nbPointsAdded = 1;
-	Blackbox bb(dim, 25, 1);// must be after that the first point has been added
+	std::vector<std::vector<double>> startingPointSet;
+
+	std::string pathToInitialPointsFile = "STYRENE/points/startingPointsMinDist"+std::to_string((int)minDist)+".txt";
+	readPointsFromFile(pathToInitialPointsFile, startingPointSet);
+	std::cout<<"nb points extracted : "<<startingPointSet.size()<<"\n";
+	if(startingPointSet.size() == 0)
+		writePoint(x0, nbPointsGenerated, evaluationNumber, pathToInitialPointsFile, nbPointsAdded);
+
+	Blackbox bb(dim, 25, 0);// must be after that the first point has been added
+	srand(time(NULL));
+
+	std::time_t startTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::cout<<"\t Started at : "<<std::ctime(&startTime)<<"\n"; 
 
 	while(nbPointsAdded<maxNbStartingPoint){
-		std::vector<int> x = generateRandomPoint(dim, lb, ub);
-		int dist = distanceToSet(startingPointSet, x);
+		std::vector<double> x = generateRandomPoint(dim, lb, ub);
+		double dist = distanceToSet(startingPointSet, x);
 		nbPointsGenerated += 1; // this one counts all the points including when we generated a point too close form the set
-		if(!(dist<minDist)){
+		if(dist>=minDist)){
 			evaluationNumber += 1; // this one counts all the evaluated points ie. once we have verified it was not too close to already feasible points
 			if(checkFeasibility(x,bb)){
 				startingPointSet.push_back(x);
-				writePoint(x,nbPointsGenerated, evaluationNumber, startingPointsFile);
+				writePoint(x,nbPointsGenerated, evaluationNumber, pathToInitialPointsFile, nbPointsAdded);
 				nbPointsAdded++;				
 			}
 		}
