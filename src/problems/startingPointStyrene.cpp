@@ -68,7 +68,7 @@ bool checkFeasibility(std::vector<double> x, Blackbox bb){ // check if x is feas
 	return isFeasible;
 }
 
-void writePoint(std::vector<double> x, size_t nbPointsGenerated, size_t evaluationNumber, std::string pathToInitialPointsFile, size_t &nbPointsAdded){
+void writePoint(std::vector<double> x, size_t nbPointsGenerated, size_t evaluationNumber, std::string pathToInitialPointsFile){
 	ofstream startingPointsFile(pathToInitialPointsFile, std::ios_base::app);	
 	size_t dim = x.size();
 	std::cout<<"added point :\t";
@@ -80,7 +80,6 @@ void writePoint(std::vector<double> x, size_t nbPointsGenerated, size_t evaluati
 	//startingPointsFile.close();
 	std::cout<<"\n"<<"after " << nbPointsGenerated << " points generated and "
 				  << evaluationNumber << " evaluations\n\n";
-	nbPointsAdded++;
 	return;
 }
 
@@ -88,20 +87,22 @@ void writePoint(std::vector<double> x, size_t nbPointsGenerated, size_t evaluati
 void readPointsFromFile(std::string pathToInitialPointsFile, std::vector<std::vector<double>> &startingPointSet){
     	ifstream startingPoints;
 	startingPoints.open(pathToInitialPointsFile);
-	std::string line;
-	while (getline(startingPoints, line)) {//we keep reading the file while we are not at the good line and that there is still lines to read
-		std::vector<double> x(8);
-		std::string point = "";
-		std::string delimiter = " "; // how coordiantes are separated
+	std::string point = "";
+	std::string delimiter = " "; // how coordiantes are separated	
+	while (getline(startingPoints, point)) {//we keep reading the file while we are not at the good line and that there is still lines to read
+		std::vector<double> x(8);	
 		size_t pos = 0;
 		std::string xi; // coordinate i of point
 		size_t i = 0;
+		//std::cout<<"read point : "+point+" --> ";
 		while ((pos = point.find(delimiter)) != std::string::npos && i<8) { // we cut the string at " " delimiters to get each coordinates
 			xi = point.substr(0, pos);
 			point.erase(0, pos + delimiter.length());
 			x[i] = std::stod(xi);
+			//std::cout<<std::stod(xi)<<"|"<<xi+" ";
 			++i;
 		}
+		//std::cout<<"\n";
 		startingPointSet.push_back(x);
 	}
 	startingPoints.close();
@@ -128,32 +129,34 @@ int main(){
 
 	size_t evaluationNumber = 0; //we did not evaluated x0
 	size_t nbPointsGenerated = 1; // but we generated it
-	size_t nbPointsAdded = 0;//
 
 	std::vector<std::vector<double>> startingPointSet;
 
 	std::string pathToInitialPointsFile = "STYRENE/points/startingPointsMinDist"+std::to_string((int)minDist)+".txt";
 	readPointsFromFile(pathToInitialPointsFile, startingPointSet);
 	std::cout<<"nb points extracted : "<<startingPointSet.size()<<"\n";
-	if(startingPointSet.size() == 0)
-		writePoint(x0, nbPointsGenerated, evaluationNumber, pathToInitialPointsFile, nbPointsAdded);
-
+	if(startingPointSet.size() == 0){
+		writePoint(x0, nbPointsGenerated, evaluationNumber, pathToInitialPointsFile);
+		startingPointSet.push_back(x0);
+	}
 	Blackbox bb(dim, 25, 0);// must be after that the first point has been added
 	srand(time(NULL));
 
 	std::time_t startTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	std::cout<<"\t Started at : "<<std::ctime(&startTime)<<"\n"; 
 
-	while(nbPointsAdded<maxNbStartingPoint){
+	while(startingPointSet.size()<maxNbStartingPoint){
 		std::vector<double> x = generateRandomPoint(dim, lb, ub);
 		double dist = distanceToSet(startingPointSet, x);
+
 		nbPointsGenerated += 1; // this one counts all the points including when we generated a point too close form the set
-		if(dist>=minDist)){
+		if(dist>=minDist){
 			evaluationNumber += 1; // this one counts all the evaluated points ie. once we have verified it was not too close to already feasible points
 			if(checkFeasibility(x,bb)){
 				startingPointSet.push_back(x);
-				writePoint(x,nbPointsGenerated, evaluationNumber, pathToInitialPointsFile, nbPointsAdded);
-				nbPointsAdded++;				
+				std::cout<<"distance : " <<dist<<"\n";
+				writePoint(x,nbPointsGenerated, evaluationNumber, pathToInitialPointsFile);
+
 			}
 		}
 	}
