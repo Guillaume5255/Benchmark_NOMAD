@@ -119,7 +119,7 @@ Blackbox::Blackbox(const int dim, const int functionNumber, const int instance )
 				styreneDir = rootPath+pathDelimiter+"/src/problems/STYRENE";
 				//this file contains differents starting points for the STYRENE problem
 				//they were generated using startingPointStyrene.cpp
-				std::string pathToInitialPointsFile = styreneDir+"/points/startingPointsMinDist5.txt";
+				std::string pathToInitialPointsFile = styreneDir+"/points/startingPoints.txt";
 				
 				std::string point = "";
     				ifstream startingPoints;

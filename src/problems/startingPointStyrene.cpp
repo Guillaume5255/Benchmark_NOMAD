@@ -124,7 +124,7 @@ int main(){
 	x0[6]=32;
 	x0[7]=15;
 
-	double minDist = 5;
+	double minDist = 1;
 	size_t maxNbStartingPoint = 10;
 
 	size_t evaluationNumber = 0; //we did not evaluated x0

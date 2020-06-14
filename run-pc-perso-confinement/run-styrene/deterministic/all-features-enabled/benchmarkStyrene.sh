@@ -24,7 +24,7 @@ runner () {
 	nb_2n_block=64
 	cd "$PARENT_PATH/$1"
 	CMD="$PWD/$EXE"
-	for pb_seed in `seq 0 0`;
+	for pb_seed in `seq 0 9`;
 	do
 		$CMD $DIM $PB_NUM $pb_seed 3 $nb_2n_block &
 		$CMD $DIM $PB_NUM $pb_seed 4 $nb_2n_block
