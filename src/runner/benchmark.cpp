@@ -123,7 +123,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",true);
 //############################################################
 
-	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
+	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",false);
 	p.getRunParams()->setAttributeValue("INTENSIFICATION_FACTOR",(std::string)"LINEAR"); //EXPONENTIAL / LINEAR
 	p.getRunParams()->setAttributeValue("REMEMBER_PREVIOUS_FAILURE",true);
 
@@ -175,7 +175,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 		break;
 	}
 	name = name + ".txt";
-	p.getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" ITER EVAL BBO"));
+	p.getDispParams()->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString(name+" ITER EVAL BBO ( SOL )"));
 
 	// parameters validation
 	p.checkAndComply();
