@@ -1,4 +1,4 @@
-include("plotProfile.jl")
+include("core/plotProfile.jl")
 
 ## Here we want to compare all the static runs, they are all made with the same number of positive basis : 2n+1 
 # because multi poll is non scalable, so we set NB_LAYER = 2n+1 for oignon poll and NB_2N_BLOCK = 2n+1 for enriched poll 
@@ -54,8 +54,8 @@ function SetAlphaKappa(attr::String, dim::Int, tau::Float64)
 	return alphaMaxArray[i], kappaMaxArray[i]
 end
 
-function Benchmarker(attr::String, allRuns::Array{Run_t,1})
-	tau = 0.01
+function Benchmarker(tau::Float64,attr::String, allRuns::Array{Run_t,1})
+	#tau = 0.01
 	outputFolder = "/plots/pb-test/geometryInfluence/profiles/$(attr)"
 	AlgoNames = ["Classic", "Multi statique","Oignon statique", "Enrichie statique"]
 	AlgoColors = [:black, :blue, :red, :yellow ]
@@ -74,4 +74,13 @@ function Benchmarker(attr::String, allRuns::Array{Run_t,1})
 		PlotProfile(attr, tau, runs, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolder, outputName, Title)
 	end
 
+end
+
+function PlotAllProfiles()
+	allRuns = Preprocess()
+	for tau in [0.01, 0.0001]	
+		for attr in ["EVAL", "ITER"]
+			Benchmarker(tau, attr, allRuns)
+		end
+	end
 end

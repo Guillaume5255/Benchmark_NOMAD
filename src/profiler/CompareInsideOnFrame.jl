@@ -1,4 +1,4 @@
-include("plotProfile.jl")
+include("core/plotProfile.jl")
 # : comparaison entre intensification de la sélection de points sur le cadre et à l'intérieur du cadre
 
 function Preprocess()
@@ -86,7 +86,7 @@ function Benchmarker(tau::Float64, attr::String, allRuns::Array{Run_t,1}, npmax:
 	#colors of the profiles
 	AlgoColors = [:black, :blue, :gold]#Array{Symbol,1}([])
 	#list of dimensions in which we do the benchmark
-	dims = [32]#[2, 4, 8, 16, 32]
+	dims = [2, 4, 8, 16, 32]
 
 	for n in dims 
 		runs = FilterRuns("DIM", Int(n), allRuns)

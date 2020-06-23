@@ -12,7 +12,7 @@ pgfplots()
 #pyplot()
 
 using LaTeXStrings
-include("helperFunctions.jl")
+include("core/helperFunctions.jl")
 
 function getStats(runs::Array{Run_t,1}, pollStrategy::Int64, nb2nblock::Int64)
 	maxVal = 0.0

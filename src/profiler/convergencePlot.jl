@@ -1,4 +1,4 @@
-include("plotProfile.jl")
+include("core/plotProfile.jl")
 
 #determinismType = "/deterministic" "/nondeterministic"
 #features = "/only-poll" "/all-features-enabled"
@@ -100,7 +100,7 @@ function benchmarker(runs::Array{Run_t,1},pollStr::String,attr::String,feature::
 	ConvergencePlot(attr,runs,AlgoNames,AlgoColors,outputFolder, outputName, Title )
 end
 
-function plotBenchmark()
+function plotAllProfiles()
 	featureNames = ["onlyPoll", "allEnabled"]
 	featureDirs = ["/only-poll", "/all-features-enabled"]
 	determinismType = "/deterministic" #"/deterministic"# 

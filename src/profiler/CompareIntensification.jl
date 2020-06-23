@@ -1,4 +1,4 @@
-include("plotProfile.jl")
+include("core/plotProfile.jl")
 # : comparaison des contextes de la section : Influence du nombre de points sur la valeur optimale
 
 function Preprocess()
@@ -154,7 +154,7 @@ function Benchmarker(tau::Float64, attr::String, allRuns::Array{Run_t,1}, npmax:
 	#colors of the profiles
 	AlgoColors = [:black, :gray80, :royalblue1, :blue3, :green, :gold]#Array{Symbol,1}([])
 	#list of dimensions in which we do the benchmark
-	dims = [2, 4, 8, 16]
+	dims = [2, 4, 8, 16, 32]
 
 	for n in dims 
 		runs = FilterRuns("DIM", Int(n), allRuns)
@@ -168,7 +168,8 @@ function Benchmarker(tau::Float64, attr::String, allRuns::Array{Run_t,1}, npmax:
 	end
 end
 
-function PlotAllProfiles(Oignon::Array{Run_t,1}, Enrichie::Array{Run_t,1} )
+function PlotAllProfiles()
+	Oignon, Enrichie = Preprocess()
 	for tau in [0.01, 0.0001]
 		for npmax in [8, 64]
 			for attr in ["EVAL", "ITER"]
