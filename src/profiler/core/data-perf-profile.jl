@@ -9,8 +9,8 @@ include("helperFunctions.jl")
 #we have three ways to compute tps : by looking to iterations, evaluations and time.
 
 # returns the amount of computation time, the number of iterations or the number of evaluations to satisfy the convergence test : f(x_0)-f(x)>= (1-tau)(f(x_0)-f_L))
-function tps(tau::Float64, run::Run_t, attr::String)
-	f_L = 0.0#here we know that all problems can reach 0 as minimum, so we take f_L = 0, to compute explicitely on real blackboxes
+function tps(tau::Float64, run::Run_t, attr::String, f_L::Float64)
+	#f_L = 0.0#here we know that all problems can reach 0 as minimum, so we take f_L = 0, to compute explicitely on real blackboxes
 	fx_0 = run.eval_f[1]
 
 	if attr == "EVAL"
@@ -73,12 +73,25 @@ end
 
 function tpsMatrix(tau::Float64, runs::Array{Run_t,1}, attr::String)
 	nbSolvers, nbProblems = GetNbSolversProblems(runs)
+	println("nb problems")	
+	println(nbProblems)
 	tps_matrix = zeros(nbProblems,nbSolvers)
-
+	f_lArray = zeros(nbProblems)
+	for p in 1:nbProblems
+		f_lArray[p]=Inf
+	end
+	for run in runs
+		p = run.pb_num
+		fopt = run.eval_f[end]
+		if fopt< f_lArray[p]
+			f_lArray[p] = fopt
+		end
+	end
+	#println(f_lArray)		
 	for run in runs
 		p = run.pb_num
 		s = run.poll_strategy # one solver = one strategy 
-		tps_matrix[p,s]=tps(tau, run, attr)
+		tps_matrix[p,s]=tps(tau, run, attr, f_lArray[p])
 	end
 	
 	return tps_matrix

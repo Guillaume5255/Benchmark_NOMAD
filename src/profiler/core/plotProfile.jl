@@ -40,12 +40,50 @@ function GetDims(runs::Array{Run_t,1})
 	return dims
 end
 
-function SetRealPbNumber(runs::Array{Run_t,1})
+function SetRealPbNumberDimsSeparated(runs::Array{Run_t,1})
 	realNbProblems = 24
 	for run in runs
-		run.pb_num = realNbProblems*(run.pb_seed) + run.pb_num
+		newPbNum = realNbProblems*(run.pb_seed) + run.pb_num
+		if newPbNum > 120 
+			Display(run)
+			println(run.pb_seed)
+			println(run.pb_num)
+		end
+		run.pb_num = newPbNum
 	end
 end
+
+function SetRealPbNumberDimsMelted(runs::Array{Run_t,1}) #to use when not plotting per dimension	
+
+	nbProblems = 24
+	nbSeeds = 5
+	nbDims = 5 #number of different dimensions
+	for run in runs
+		newPbNum = 1 + nbDims*nbSeeds*(run.pb_num-1) + nbDims*(run.pb_seed) + (Int(log2(run.dim))-1) # ! 1<=pb_num<=24 and 0<=pb_seed<=4
+		if newPbNum > 600
+			println(newPbNum)
+			Display(run)
+		end
+		run.pb_num = newPbNum
+	end
+end
+
+function SetRealPbNumber(runs::Array{Run_t,1}, separateDims::Bool)
+	if separateDims
+		SetRealPbNumberDimsSeparated(runs)
+	else
+		SetRealPbNumberDimsMelted(runs)
+	end
+end
+
+function SetRealPbNumberStyrene(runs::Array{Run_t,1})
+	for run in runs
+		pbNum = run.pb_seed+1
+		run.pb_num = pbNum
+	end
+end
+		
+
 
 #generic function that plots the profiles made on some runs in a specific window 
 function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax::Float64, kappaMax::Float64, algoNames::Array{String, 1}, algoColors::Array{Symbol, 1}, outputFolder::String, outputName::String, Title::String)
@@ -66,15 +104,15 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 	normalized_tps_matrix = copy(tps_matrix)
 
 	# this step is used in data profile in the case where we look at how behaves algorithms in term of evaluation,  it has no sens when we are interested by profiles in iteration or in time 
-	if attr == "EVAL"
+	if attr == "EVAL" || attr == "TIME"
 		problemsDimensions = GetProblemsDimension(runs,nbProblems)
 		for p in 1:nbProblems
 			normalized_tps_matrix[p,:] = normalized_tps_matrix[p,:]/problemsDimensions[p] #to modify, dimension is not the same for each problem
 		end
 	end
 
-	alphaMin = 0.9
-	kappaMin = -0.1
+	alphaMin = 1.0
+	kappaMin = 0.0
 	alphaStep = (alphaMax-alphaMin)/150.0
 	kappaStep = (kappaMax-kappaMin)/150.0
 	alphaPP = alphaMin:alphaStep:alphaMax
@@ -92,8 +130,8 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 	mcontour = 0.5
 	nbSolvers = size(algoNames)[1]
 	for s in 1:nbSolvers
-		markerSpace = 20-Int(floor(nbSolvers/2))+s
-		mr=s:markerSpace:150 #marker rate : made folowwing this idea : 
+		markerSpace = 15-Int(floor(nbSolvers/2))+s # so all markers are not aligned
+		mr=1:markerSpace:150 #marker rate : made folowwing this idea : 
 		#https://stackoverflow.com/questions/56048096/supressing-some-labels-in-legend-or-putting-sampled-markers
 		PPValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
 		DPValue =  [DataProfile(kappa, s, normalized_tps_matrix) for kappa in kappaDP]
@@ -141,12 +179,22 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 
 
 	end
+	if attr == "EVAL"
+		xlabel!(PPplot,"Ratio d'évaluations \$\\alpha\$")
+		xlabel!(DPplot,"Groupes de \$n+1\$ évaluations \$\\kappa\$")
+	end
+	if attr == "ITER"
+		xlabel!(PPplot,"Ratio d'itérations \$\\alpha\$")
+		xlabel!(DPplot,"Itérations \$\\kappa\$")
+	end
+	if attr == "TIME"
+		xlabel!(PPplot,"Ratio de temps \$\\alpha\$")
+		xlabel!(DPplot,"Temps (s)")
+	end
 
-	xlabel!(PPplot,"\$\\alpha ($attr) \$")
-	xlabel!(DPplot,"\$\\kappa ($attr) \$")
 
-	ylabel!(PPplot,"proportion de problemes resolus")
-	ylabel!(DPplot,"proportion de problemes resolus")
+	ylabel!(PPplot,"Proportion de problèmes résolus")
+	ylabel!(DPplot,"Proportion de problèmes résolus")
 
 	title!(PPplot,Title)
 	title!(DPplot,Title)
