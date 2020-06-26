@@ -113,13 +113,12 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 
 	alphaMin = 1.0
 	kappaMin = 0.0
-	alphaStep = (alphaMax-alphaMin)/150.0
-	kappaStep = (kappaMax-kappaMin)/150.0
+	nbTicks = 150.0
+	alphaStep = (alphaMax-alphaMin)/nbTicks
+	kappaStep = (kappaMax-kappaMin)/nbTicks
 	alphaPP = alphaMin:alphaStep:alphaMax
 	kappaDP = kappaMin:kappaStep:kappaMax
 	
-	
-    
 	legendPos = :bottomright
 	PPplot = plot(dpi=300,ylims = (0,1))
 	DPplot = plot(dpi=300,ylims = (0,1))
@@ -131,7 +130,7 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 	nbSolvers = size(algoNames)[1]
 	for s in 1:nbSolvers
 		markerSpace = 15-Int(floor(nbSolvers/2))+s # so all markers are not aligned
-		mr=1:markerSpace:150 #marker rate : made folowwing this idea : 
+		mr=1:markerSpace:Int(nbTicks) #marker rate : made following this idea : 
 		#https://stackoverflow.com/questions/56048096/supressing-some-labels-in-legend-or-putting-sampled-markers
 		PPValue =  [PerformanceProfile(alpha, s, rps_matrix) for alpha in alphaPP]
 		DPValue =  [DataProfile(kappa, s, normalized_tps_matrix) for kappa in kappaDP]
@@ -144,15 +143,11 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 				label = "", 
 				legend=legendPos, 
 				linetype=:steppre, 
-				linestyle = linestyles[s])
-				#marker = markers[s])#plots the line
+				linestyle = linestyles[s]) #plots the line
 		PPplot = plot!(PPplot,alphaPP[mr], PPValue[mr], 
-				#linecolor=algoColors[s], 
 				label = algoNames[s], 
 				legend=legendPos, 
 				linetype=:scatter,
-				#linewidth = 1,
-				#linestyle = linestyles[s],
 				marker = markers[s],
 				markersize = msize,
 				markercolor=algoColors[s],
@@ -163,15 +158,11 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 				label = "", 
 				legend=legendPos, 
 				linetype=:steppre, 
-				linestyle = linestyles[s])
-				#marker = markers[s])#plots the line
+				linestyle = linestyles[s])#plots the line
 		DPplot = plot!(DPplot,kappaDP[mr], DPValue[mr], 
-				#linecolor=algoColors[s], 
 				label = algoNames[s], 
 				legend=legendPos, 
 				linetype=:scatter,
-				#linewidth = 1,
-				#linestyle = linestyles[s],
 				marker = markers[s],
 				markersize = msize,
 				markercolor=algoColors[s],

@@ -16,23 +16,12 @@ function Preprocess(separateDims::Bool)
 	oignonRunsDynamicWithoutMemoryExp =  ExtractSpecificData(dirDynamicRuns*"/without-memory/exp", "POLL_STRATEGY", 3)
 	oignonRunsDynamicWithMemoryLin =  ExtractSpecificData(dirDynamicRuns*"/with-memory/lin", "POLL_STRATEGY", 3)
 	oignonRunsDynamicWithMemoryExp =  ExtractSpecificData(dirDynamicRuns*"/with-memory/exp", "POLL_STRATEGY", 3)
-	#SetRealPbNumber(oignonRunsStatic,separateDims)
-	#SetRealPbNumber(oignonRunsDynamicWithoutMemoryLin, separateDims)
-	#SetRealPbNumber(oignonRunsDynamicWithoutMemoryExp, separateDims)
-	#SetRealPbNumber(oignonRunsDynamicWithMemoryLin, separateDims)
-	#SetRealPbNumber(oignonRunsDynamicWithMemoryExp, separateDims)
 
 	enrichedRunsStatic = ExtractSpecificData(dirStaticRuns, "POLL_STRATEGY", 4)
 	enrichedRunsDynamicWithoutMemoryLin = ExtractSpecificData(dirDynamicRuns*"/without-memory/lin", "POLL_STRATEGY", 4)
 	enrichedRunsDynamicWithoutMemoryExp =  ExtractSpecificData(dirDynamicRuns*"/without-memory/exp", "POLL_STRATEGY", 4)
 	enrichedRunsDynamicWithMemoryLin =  ExtractSpecificData(dirDynamicRuns*"/with-memory/lin", "POLL_STRATEGY", 4)
 	enrichedRunsDynamicWithMemoryExp =  ExtractSpecificData(dirDynamicRuns*"/with-memory/exp", "POLL_STRATEGY", 4)
-	#SetRealPbNumber(enrichedRunsStatic, separateDims)
-	#SetRealPbNumber(enrichedRunsDynamicWithoutMemoryLin, separateDims)
-	#SetRealPbNumber(enrichedRunsDynamicWithoutMemoryExp, separateDims)
-	#SetRealPbNumber(enrichedRunsDynamicWithMemoryLin, separateDims)
-	#SetRealPbNumber(enrichedRunsDynamicWithMemoryExp, separateDims)
-
 
 	#changing the poll strategy number - classic 
 	for run in runsClassic
