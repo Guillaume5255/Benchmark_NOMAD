@@ -97,7 +97,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", true); // deterministic when NB_THREADS_OPENMP = 1
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", false); // deterministic when NB_THREADS_OPENMP = 1
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 

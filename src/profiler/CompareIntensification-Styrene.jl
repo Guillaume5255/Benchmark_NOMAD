@@ -135,12 +135,12 @@ function Benchmarker(tau::Float64, attr::String, runs::Array{Run_t,1}, pollStr::
 end
 
 function plotAllProfiles()
-	featureNames = ["onlyPoll", "allEnabled"]
-	featureDirs = ["/only-poll", "/all-features-enabled"]
+	featureNames = ["onlyPoll", "allEnabled", "s+o"]
+	featureDirs = ["/only-poll", "/all-features-enabled", "/searches-opportunism"]
 	determinismType = "/deterministic" #"/deterministic"#
 	strategies = ["Oignon", "Enrichie"]
 	
-	for featureType in [1, 2]
+	for featureType in [1, 2, 3]
 		runs = Preprocess(determinismType,featureDirs[featureType])# array of arrays of runs : Preprocess(...) = [Oignon, Enriched]
 		for tau in [0.1, 0.01]
 			for attr in ["EVAL","ITER"]
