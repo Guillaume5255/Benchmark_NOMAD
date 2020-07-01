@@ -24,7 +24,7 @@ runner () {
 	nb_2n_block=64
 	cd "$PARENT_PATH/$1"
 	CMD="$PWD/$EXE"
-	for pb_seed in `seq 4 4`;
+	for pb_seed in `seq 5 9`;
 	do
 		$CMD $DIM $PB_NUM $pb_seed 3 $nb_2n_block &
 		$CMD $DIM $PB_NUM $pb_seed 4 $nb_2n_block &
@@ -35,6 +35,6 @@ runner () {
 #classicalPollRunner &
 #runner "dynamic/sans-mem/lin" &
 #runner "dynamic/sans-mem/exp"&
-runner "static"
+#runner "static"
 #runner "dynamic/avec-mem/lin" &
-#runner "dynamic/avec-mem/exp"
+runner "dynamic/avec-mem/exp"
