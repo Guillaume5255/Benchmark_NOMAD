@@ -812,7 +812,7 @@ string Blackbox::styrene(std::vector<double> x){
 	//auto stopEval = omp_get_wtime();
 
 	if (!pipe) {
-		throw std::runtime_error("popen() failed! : impossible to read blackbox output.");
+		throw std::runtime_error("popen() failed! : impossible to read blackbox output. Verify that "+styreneDir+"/bb/truth.exe exists, otherwise compile it by typing make in a terminal at the executable location.");
 	}
 
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {

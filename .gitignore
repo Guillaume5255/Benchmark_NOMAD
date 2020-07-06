@@ -1,3 +1,10 @@
-AllRuns/
+
+runData/run-pb-test/classical-poll/
+runData/run-pb-test/compareGeometry/
+runData/run-pb-test/dynamic/
+runData/run-pb-test/enriched-on-frame-static/
+runData/run-pb-test/LHS/
+runData/run-styrene/
 run/
+
 .vscode
