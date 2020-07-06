@@ -3,9 +3,9 @@ include("core/plotProfile.jl")
 
 function Preprocess(separateDims::Bool)
 	#data directories
-	dirClassicRuns = "/run-pc-perso-confinement/run-pb-test/classical-poll" 
-	dirStaticRuns = "/run-pc-perso-confinement/run-pb-test/static"
-	dirDynamicRuns = "/run-pc-perso-confinement/run-pb-test/dynamic" #/without-memory/lin"  
+	dirClassicRuns = ROOT_RUN_DIR*"/run-pb-test/classical-poll" 
+	dirStaticRuns = ROOT_RUN_DIR*"/run-pb-test/static"
+	dirDynamicRuns = ROOT_RUN_DIR*"/run-pb-test/dynamic" #/without-memory/lin"  
 	
 	#extracting the runs and setting real pbNumber
 	runsClassic = ExtractData(dirClassicRuns)

@@ -252,17 +252,17 @@ int main (int argc, char **argv)
 {
 	bool useArgs = argc >1;
 
-	size_t DIM_MIN=8;
-	size_t PB_NUM_MIN=25;
+	size_t DIM_MIN=2;
+	size_t PB_NUM_MIN=1;
 	size_t PB_SEED_MIN=0;
-	size_t POLL_STRATEGY_MIN=3;
-	size_t NB_2N_BLOCK_MIN=64;
+	size_t POLL_STRATEGY_MIN=5;
+	size_t NB_2N_BLOCK_MIN=1;
 
-	size_t DIM_MAX=9;
-	size_t PB_NUM_MAX=26;
-	size_t PB_SEED_MAX=10;
-	size_t POLL_STRATEGY_MAX=5;
-	size_t NB_2N_BLOCK_MAX=65;
+	size_t DIM_MAX=64;
+	size_t PB_NUM_MAX=25;
+	size_t PB_SEED_MAX=5;
+	size_t POLL_STRATEGY_MAX=6;
+	size_t NB_2N_BLOCK_MAX=2;
 
 	if (useArgs){
 		DIM_MIN = atoi(argv[1]);

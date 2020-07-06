@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+//program to get machine precision
 
 int main(){
 	double epsilon = 1.0;

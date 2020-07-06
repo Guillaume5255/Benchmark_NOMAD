@@ -3,9 +3,9 @@ include("core/plotProfile.jl")
 
 function Preprocess(separateDims::Bool)
 	#data directories
-	dirClassicRuns = "/run-pc-perso-confinement/run-pb-test/classical-poll" 
-	dirEnrichedInsideFrame = "/run-pc-perso-confinement/run-pb-test/static"
-	dirEnrichedOnFrame = "/run-pc-perso-confinement/run-pb-test/enriched-on-frame-static"  
+	dirClassicRuns = ROOT_RUN_DIR*"/run-pb-test/classical-poll" 
+	dirEnrichedInsideFrame = ROOT_RUN_DIR*"/run-pb-test/static"
+	dirEnrichedOnFrame = ROOT_RUN_DIR*"/run-pb-test/enriched-on-frame-static"  
 	
 	runsClassic = ExtractData(dirClassicRuns)
 	enrichedRunsOnFrame = ExtractData(dirEnrichedOnFrame)

@@ -1,9 +1,9 @@
 ### Benchmark NOMAD
-In this depot, a set of problems is used to do scalability and performance benchmark over 4 poll strategies implemented in the beta version of [`NOMAD 4`](https://github.com/Guillaume5255/nomad). 
+In this depot, a set of problems is used to do scalability and performance benchmark over 3 poll strategies implemented in the beta version of [`NOMAD 4`](https://github.com/Guillaume5255/nomad). 
 
 Analytical test problems form [`https://coco.gforge.inria.fr/`](coco) are implemented in [`/src/problems/blackbox.cpp`](/src/problems/blackbox.cpp) and [`/src/problems/blackbox.hpp`](/src/problems/blackbox.hpp). they are numbered form 1 to 24.
 
-A real blackbox code is available in [`/src/problems/STYRENE`](/src/problems/STYRENE) as problem 25.
+A real blackbox code is available in [`/src/problems/STYRENE`](/src/problems/STYRENE) as problem 25. The official depot for this problem can be found [`here`](https://github.com/bbopt/styrene)
 
 All analytical problems are bounded below by 0, are defined for x in `[-5, 5]^n` and are without any constraint. An idea that could be exploited to build constrained analytical problems would be to use one of those analytical problems as objectif, and one or several others as constraints.
 

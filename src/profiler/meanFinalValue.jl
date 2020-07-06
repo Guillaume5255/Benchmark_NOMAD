@@ -1,9 +1,9 @@
 #code to benchmark poll strategies
 #the problems are all defined in [-5,5]^n,
 #they all have objective function positive or null, 
-#they use random rotations matrix to generate instance
+#they use random rotations matrix and initial point to generate instance
 #the entries of the matrix are generated with a random seed that can be changed : changing the seed change the problem 
-#the starting point can also be changed, but for the momet, it is arbitrarly fixed to (-4,...-4)
+
 
 using Plots
 pgfplots()
@@ -89,13 +89,12 @@ function plotStats(runs::Array{Run_t,1}, dim::Int64)
 end
 
 function InfluenceOfNbPoints()
-	dir0="/run-pb-test-static-casir"
-	dir1 = "/run-pc-perso-confinement/run-pb-test"
+	dir1 = ROOT_RUN_DIR*"/run-pb-test"
 	println("extracting data from $(dir1)")
-	runsCasir = OldExtractData(dir0);
+
 	allRuns = [ExtractData(dir1*"/compareGeometry");
 			ExtractData(dir1*"/static");
-			FilterRuns("POLL_STRATEGY", 5, runsCasir);
+			ExtractData(dir1*"/LHS");
 			ExtractData(dir1*"/classical-poll") ]	
 	println("done")
 

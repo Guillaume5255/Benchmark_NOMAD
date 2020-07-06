@@ -4,8 +4,8 @@ include("core/plotProfile.jl")
 # because multi poll is non scalable, so we set NB_LAYER = 2n+1 for oignon poll and NB_2N_BLOCK = 2n+1 for enriched poll 
 # we aim to see the influence of the geometry used to generate the points
 function Preprocess(separateDims::Bool)
-	dirClassicRun = "/run-pc-perso-confinement/run-pb-test/classical-poll"
-	dirOtherRun = "/run-pc-perso-confinement/run-pb-test/compareGeometry"
+	dirClassicRun = ROOT_RUN_DIR*"/run-pb-test/classical-poll"
+	dirOtherRun = ROOT_RUN_DIR*"/run-pb-test/compareGeometry"
 
 	otherStaticRuns =  ExtractData(dirOtherRun)
 	classicRun = ExtractData(dirClassicRun)
@@ -86,7 +86,7 @@ end
 function Benchmarker(tau::Float64,attr::String, allRuns::Array{Run_t,1}, separateDims::Bool)
 	#tau = 0.01
 	outputFolder = "/plots/pb-test/geometryInfluence/profiles/$(attr)"
-	AlgoNames = ["Classic", "Multi statique","Oignon statique", "Enrichie statique"]
+	AlgoNames = ["Classique", "Multi statique","Oignon statique", "Enrichie statique"]
 	AlgoColors = [:black, :blue, :red, :yellow ]
 	#dims = GetDims(allRuns)
 	dims = [2 4 8 16 32]

@@ -1,6 +1,7 @@
 using DelimitedFiles
 include("dataStruct.jl")
 
+const ROOT_RUN_DIR = "/runData"
 
 function Display(run::Run_t)
 	str = "$(run.dim)_$(run.pb_num)_$(run.pb_seed)_$(run.poll_strategy)_$(run.nb_2n_blocks)"

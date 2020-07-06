@@ -3,10 +3,10 @@ include("core/plotProfile.jl")
 #determinismType = "/deterministic" "/nondeterministic"
 #features = "/only-poll" "/all-features-enabled"
 function Preprocess(determinismType::String,features::String)
-	runsDir = "/run-pc-perso-confinement/run-styrene"*determinismType*features
+	runsDir = ROOT_RUN_DIR*"/run-styrene"*determinismType*features
 	println("Extracting data from $runsDir")
 	#we take the case of only classical poll as reference
-	ClassicalPoll = ExtractData("/run-pc-perso-confinement/run-styrene"*determinismType*"/only-poll/classical-poll")
+	ClassicalPoll = ExtractData(ROOT_RUN_DIR*"/run-styrene"*determinismType*"/only-poll/classical-poll")
 	Static = ExtractSpecificData(runsDir*"/static","NB_2N_BLOCK", 64)
 	DynamicWithoutMemLin = ExtractData(runsDir*"/dynamic/sans-mem/lin")
 	DynamicWithoutMemExp = ExtractData(runsDir*"/dynamic/sans-mem/exp")
@@ -84,7 +84,7 @@ end
 
 function benchmarker(runs::Array{Run_t,1},pollStr::String,attr::String,feature::String)
 
-	Title = "STYRENE : \$n = 8, n_p^{max} = 64 \\times 2n\$"
+	Title = ""#"STYRENE : \$n = 8, n_p^{max} = 64 \\times 2n\$"
 	outputFolder = "/plots/pb-bb-styrene/intensificationInfluence/convergence/$(attr)"
 	outputName = "$(feature)_$(pollStr)_$(attr)"
 	#list of algoriths used in profiles, the order is important :

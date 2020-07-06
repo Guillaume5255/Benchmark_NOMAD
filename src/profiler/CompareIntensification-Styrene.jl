@@ -4,10 +4,10 @@ include("core/plotProfile.jl")
 #determinismType = "/deterministic" "/nondeterministic"
 #features = "/only-poll" "/all-features-enabled"
 function Preprocess(determinismType::String,features::String)
-	runsDir = "/run-pc-perso-confinement/run-styrene"*determinismType*features
+	runsDir = ROOT_RUN_DIR*"/run-styrene"*determinismType*features
 	println("Extracting data from $runsDir")
 	#we take the case of only classical poll as reference
-	ClassicalPoll = ExtractData("/run-pc-perso-confinement/run-styrene"*determinismType*"/only-poll/classical-poll")
+	ClassicalPoll = ExtractData(ROOT_RUN_DIR*"/run-styrene"*determinismType*"/only-poll/classical-poll")
 	SetRealPbNumberStyrene(ClassicalPoll)
 
 	Static = ExtractSpecificData(runsDir*"/static","NB_2N_BLOCK", 64)
@@ -135,12 +135,12 @@ function Benchmarker(tau::Float64, attr::String, runs::Array{Run_t,1}, pollStr::
 end
 
 function plotAllProfiles()
-	featureNames = ["onlyPoll", "allEnabled", "s+o"]
-	featureDirs = ["/only-poll", "/all-features-enabled", "/searches-opportunism"]
+	featureNames = ["onlyPoll", "allEnabled", "s+o", "search+poll"]
+	featureDirs = ["/only-poll", "/all-features-enabled", "/searches-opportunism", "/wo-opportunism"]
 	determinismType = "/deterministic" #"/deterministic"#
 	strategies = ["Oignon", "Enrichie"]
 	
-	for featureType in [1, 2, 3]
+	for featureType in [1, 2, 3, 4]
 		runs = Preprocess(determinismType,featureDirs[featureType])# array of arrays of runs : Preprocess(...) = [Oignon, Enriched]
 		for tau in [0.1, 0.01]
 			for attr in ["EVAL","ITER"]
