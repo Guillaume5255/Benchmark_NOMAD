@@ -86,7 +86,7 @@ end
 function Benchmarker(tau::Float64,attr::String, allRuns::Array{Run_t,1}, separateDims::Bool)
 	#tau = 0.01
 	outputFolder = "/plots/pb-test/geometryInfluence/profiles/$(attr)"
-	AlgoNames = ["Classique", "Multi statique","Oignon statique", "Enrichie statique"]
+	AlgoNames = ["Classic", "Multi static","Onion static", "Enriched static"]
 	AlgoColors = [:black, :blue, :red, :yellow ]
 	#dims = GetDims(allRuns)
 	dims = [2 4 8 16 32]
@@ -96,14 +96,14 @@ function Benchmarker(tau::Float64,attr::String, allRuns::Array{Run_t,1}, separat
 			runs = FilterRuns("DIM", Int(n), allRuns)
 
 			outputName = "dim_$(n)_tau_$(tau)"
-			Title = "\$n = $(n), \\tau = $(tau), n_p^{max} = $(nb2nBlock) \\times 2n \$"
+			Title = "\$n = $(n), \\tau = $(tau), n_p^{k} = $(nb2nBlock) \\times 2n \$"
 
 			alphaMax, kappaMax = SetAlphaKappa(attr, n, tau)
 			PlotProfile(attr, tau, runs, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolder, outputName, Title)
 		end
 	else
 		outputName = "tau_$(tau)"
-		Title = "\$ \\tau = $(tau), n_p^{max} = (2n+1) \\times 2n \$"
+		Title = "\$ \\tau = $(tau), n_p^{k} = (2n+1) \\times 2n \$"
 		alphaMax, kappaMax = SetAlphaKappaAllDims(attr, tau)
 		
 		PlotProfile(attr, tau, allRuns, alphaMax, kappaMax, AlgoNames, AlgoColors, outputFolder, outputName, Title)

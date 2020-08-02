@@ -116,15 +116,22 @@ function Benchmarker(tau::Float64, attr::String, runs::Array{Run_t,1}, pollStr::
 	npmax=64
 	Title = "\\texttt{STYRENE} : \$n = 8, \\tau = $(tau), n_p^{max} = $(npmax) \\times 2n\$"
 	outputFolder = "/plots/pb-bb-styrene/intensificationInfluence/profils/$(attr)"
-	outputName = "$(feature)_$(pollStr)_$(attr)_tau_$(tau)"
+	pollStrName = ""
+	if pollStr == "Oignon" || pollStr == "Onion"
+		pollStrName = "Oignon"
+	end
+	if pollStr == "Enrichie" || pollStr == "Enriched"
+		pollStrName = "Enrichie"
+	end	
+	outputName = "$(feature)_$(pollStrName)_$(attr)_tau_$(tau)"
 	#list of algoriths used in profiles, the order is important :
 	#AlgoNames[i] is the name of the algoritm with poll strategy i, set in Preprocess () 
-	AlgoNames = ["Classique",
-			"$(pollStr) statique",
-			"$(pollStr) sans mem. lin.",
-			"$(pollStr) sans mem. exp.",
-			"$(pollStr) avec mem. lin.",
-			"$(pollStr) avec mem. exp."]
+	AlgoNames = ["Classic",
+			"$(pollStr) static",
+			"$(pollStr) wo. mem. lin.",
+			"$(pollStr) wo. mem. exp.",
+			"$(pollStr) w. mem. lin.",
+			"$(pollStr) w. mem. exp."]
 	#colors of the profiles
 	AlgoColors = [:black, :gray80, :royalblue1, :blue3, :green, :gold]
 
@@ -135,14 +142,14 @@ function Benchmarker(tau::Float64, attr::String, runs::Array{Run_t,1}, pollStr::
 end
 
 function plotAllProfiles()
-	featureNames = ["onlyPoll", "allEnabled", "s+o", "search+poll"]
-	featureDirs = ["/only-poll", "/all-features-enabled", "/searches-opportunism", "/wo-opportunism"]
+	featureNames = ["onlyPoll", "allEnabled"]#, "s+o", "search+poll"]
+	featureDirs = ["/only-poll", "/all-features-enabled"]#, "/searches-opportunism", "/wo-opportunism"]
 	determinismType = "/deterministic" #"/deterministic"#
-	strategies = ["Oignon", "Enrichie"]
+	strategies = ["Onion", "Enriched"]
 	
-	for featureType in [1, 2, 3, 4]
+	for featureType in [1, 2]#, 3, 4]
 		runs = Preprocess(determinismType,featureDirs[featureType])# array of arrays of runs : Preprocess(...) = [Oignon, Enriched]
-		for tau in [0.1, 0.01]
+		for tau in [0.1]#, 0.01]
 			for attr in ["EVAL","ITER"]
 				for runType in [1,2]
 					Benchmarker(tau, attr, runs[runType], strategies[runType], featureNames[featureType])

@@ -125,14 +125,14 @@ int main(){
 	x0[7]=15;
 
 	double minDist = 1;
-	size_t maxNbStartingPoint = 10;
+	size_t maxNbStartingPoint = 30;
 
 	size_t evaluationNumber = 0; //we did not evaluated x0
 	size_t nbPointsGenerated = 1; // but we generated it
 
 	std::vector<std::vector<double>> startingPointSet;
 
-	std::string pathToInitialPointsFile = "STYRENE/points/startingPointsMinDist"+std::to_string((int)minDist)+".txt";
+	std::string pathToInitialPointsFile = "STYRENE/points/startingPoints.txt";
 	readPointsFromFile(pathToInitialPointsFile, startingPointSet);
 	std::cout<<"nb points extracted : "<<startingPointSet.size()<<"\n";
 	if(startingPointSet.size() == 0){

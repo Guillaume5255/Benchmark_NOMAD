@@ -171,21 +171,21 @@ function PlotProfile(attr::String, tau::Float64, runs::Array{Run_t,1}, alphaMax:
 
 	end
 	if attr == "EVAL"
-		xlabel!(PPplot,"Ratio d'évaluations \$\\alpha\$")
-		xlabel!(DPplot,"Groupes de \$n+1\$ évaluations \$\\kappa\$")
+		xlabel!(PPplot,"Occupation cycles ratio \$\\alpha\$")
+		xlabel!(DPplot,"Groups of \$n+1\$ evaluations \$\\kappa\$")
 	end
 	if attr == "ITER"
-		xlabel!(PPplot,"Ratio d'itérations \$\\alpha\$")
-		xlabel!(DPplot,"Itérations \$\\kappa\$")
+		xlabel!(PPplot,"Occupation cycles ratio \$\\alpha\$")
+		xlabel!(DPplot,"Occupation cycles \$\\kappa\$")
 	end
 	if attr == "TIME"
-		xlabel!(PPplot,"Ratio de temps \$\\alpha\$")
-		xlabel!(DPplot,"Temps (s)")
+		xlabel!(PPplot,"Time ratio \$\\alpha\$")
+		xlabel!(DPplot,"Time (s)")
 	end
 
 
-	ylabel!(PPplot,"Proportion de problèmes résolus")
-	ylabel!(DPplot,"Proportion de problèmes résolus")
+	ylabel!(PPplot,"Proportion of problems solved")
+	ylabel!(DPplot,"Proportion of problems solved")
 
 	title!(PPplot,Title)
 	title!(DPplot,Title)

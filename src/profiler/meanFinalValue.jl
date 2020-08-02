@@ -47,7 +47,7 @@ function plotStats(runs::Array{Run_t,1}, dim::Int64)
 	mcontour = 0.5
 
 	colors = [:black, :blue, :red, :yellow, :green]
-	pollStr = ["Classique" "Multi" "Oignon" "Enrichie" "LHS"]
+	pollStr = ["Classic" "Multi" "Onion" "Enriched" "LHS"]
 	legendPos = :topright
 	Xgrad = :log2
 	Ygrad = :log2
@@ -69,8 +69,8 @@ function plotStats(runs::Array{Run_t,1}, dim::Int64)
 	
 	Title = "\$n=$(dim)\$"
 	title!(Title)
-	xlabel!("nombre de bases positives")
-	ylabel!("valeurs optimales moyennes et maximales")
+	xlabel!("Number of \$2n\$ positive basis per iteration")
+	ylabel!("Mean and maximum optimal values")
 	
 	outputFolder = "/plots/pb-test/meanFinalValueRevisited"
 	outputName = "dim_$(dim)"

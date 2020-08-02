@@ -207,9 +207,16 @@ end
 function Benchmarker(tau::Float64, attr::String, allRuns::Array{Run_t,1}, npmax::Int64, pollStr::String, separateDims::Bool)
 	allRuns =[FilterRuns("NB_2N_BLOCK", 1, allRuns); FilterRuns("NB_2N_BLOCK", npmax, allRuns)] #to conserve classic runs
 	#tau = 0.01 ou 0.0001
-	outputFolder = "/plots/pb-test/intensificationInfluence/$(pollStr)/profiles/$(attr)"
+	pollStrFolder = ""
+	if pollStr == "Oignon" || pollStr == "Onion"
+		pollStrFolder = "Oignon"
+	end
+	if pollStr == "Enrichie" || pollStr == "Enriched"
+		pollStrFolder = "Enrichie"
+	end	
+	outputFolder = "/plots/pb-test/intensificationInfluence/$(pollStrFolder)/profiles/$(attr)"
 	#list of algoriths used in profiles, the order is important, AlgoName[i] will be the name of the algoritm with poll strategy i (set in Preprocess ()) 
-	AlgoNames = ["Classique", "$(pollStr) statique", "$(pollStr) sans mem. lin.", "$(pollStr) sans mem. exp.", "$(pollStr) avec mem. lin.", "$(pollStr) avec mem. exp."]#, "Oignon dynamique exp.", "Oignon dynamique exp."] 
+	AlgoNames = ["Classic", "$(pollStr) static", "$(pollStr) wo. mem. lin.", "$(pollStr) wo. mem. exp.", "$(pollStr) w. mem. lin.", "$(pollStr) w. mem. exp."]#, "Oignon dynamique exp.", "Oignon dynamique exp."] 
 	#colors of the profiles
 	AlgoColors = [:black, :gray80, :royalblue1, :blue3, :green, :gold]#Array{Symbol,1}([])
 	#list of dimensions in which we do the benchmark
@@ -243,8 +250,8 @@ function PlotAllProfils(separateDims::Bool)
 	for tau in [0.01, 0.0001]
 		for npmax in [8, 64]
 			for attr in ["EVAL", "ITER"]
-				Benchmarker(tau, attr, Oignon, npmax, "Oignon",separateDims)
-				Benchmarker(tau, attr, Enrichie, npmax, "Enrichie",separateDims)
+				Benchmarker(tau, attr, Oignon, npmax, "Onion",separateDims)
+				Benchmarker(tau, attr, Enrichie, npmax, "Enriched",separateDims)
 			end
 		end
 	end
