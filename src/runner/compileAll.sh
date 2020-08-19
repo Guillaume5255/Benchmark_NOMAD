@@ -5,7 +5,11 @@ module load gcc/7.2.0
 
 SRC_PATH=$PWD
 EXE=../../run/benchmarker.exe
-DEST_PATH=../../run-pc-perso-confinement/run-styrene/deterministic/wo-opportunism
+DEST_PATH=../../runData/run-styrene/deterministic/all-features-enabled
+#all-features-enabled
+#only-poll
+#searches-opportunism
+#wo-opportunism
 
 make RUNNER_SOURCE=benchmark_static.cpp
 mv $EXE $DEST_PATH/static/

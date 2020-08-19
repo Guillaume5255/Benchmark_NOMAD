@@ -97,7 +97,7 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
 	p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);	
-	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",false); // deterministic when NB_THREADS_OPENMP = 1
+	p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL",true); // deterministic when NB_THREADS_OPENMP = 1
 	p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE",(size_t)1);
 
 
@@ -117,10 +117,10 @@ void initParams(NOMAD::AllParameters &p, size_t n, size_t pb_num, size_t pb_seed
 	p.getRunParams()->setAttributeValue("LH_SEARCH",NOMAD::LHSearchType(std::to_string(n+1)+" "+std::to_string(n+1)));//deterministic since we changed the way it is done in Math/LHS.cpp
 	p.getRunParams()->setAttributeValue("NM_SEARCH",false); // investigate why it's not working
 	//p.getRunParams()->setAttributeValue("NM_SIMPLEX_INCLUDE_FACTOR",NOMAD::INF_SIZE_T);
-	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH",true);
+	p.getRunParams()->setAttributeValue("SPECULATIVE_SEARCH", true);
 	p.getRunParams()->setAttributeValue("SGTELIB_SEARCH",false); //not deterministic
-	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",false);
-	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",false);
+	p.getRunParams()->setAttributeValue("FRAME_CENTER_USE_CACHE",true);
+	p.getRunParams()->setAttributeValue("ANISOTROPIC_MESH",true);
 //############################################################
 
 	p.getRunParams()->setAttributeValue("DYNAMIC_POLL",true);
