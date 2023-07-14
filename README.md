@@ -16,11 +16,11 @@ there are two ways to run this program :
 - With no arguments : type `./benchmarker.exe` the program will iterate trough the loops of the main function of [`/src/runner/benchmark.cpp`](/src/runner/benchmark.cpp). This is used to run many instances.
 
 When executed, this program produces the history of the amelioration of the objectif functions optimized by NOMAD 4. The run history has the name : `run_dimension_problemNum_problemSeed_pollStrategy_numberOf2nBlocks_.txt` with :
-- dimension : number of variables
-- problemNum : define which problem is used. 1 to 24 : analytical problems, 25 : styrene.
-- problemSeed : is used to generate random deterministic componens in the selected problem (such as rotation matrix and starting point). This feature allows us to generate a whole family of problems with only one initial problem, just like changing the starting point.
-- pollStrategy : defines the poll strategy used during the run (1 = classic poll, 2 = multi poll, 3 = oignon poll, 4 = enriched poll)
-- numberOf2nBlocks : refers to the number of 2n positive basis (where n is the dimension) used to generate points for the poll step. This parameter can only be set for oignon poll and extended poll. For classic poll,  numberOf2nBlocks = 1 and for multi poll, numberOf2nBlocks = 2n+1.
+- `dimension` : number of variables
+- `problemNum` : define which problem is used. 1 to 24 : analytical problems, 25 : styrene.
+- `problemSeed` : is used to generate random deterministic componens in the selected problem (such as rotation matrix and starting point). This feature allows us to generate a whole family of problems with only one initial problem, just like changing the starting point.
+- `pollStrategy` : defines the poll strategy used during the run (1 = classic poll, 2 = multi poll, 3 = oignon poll, 4 = enriched poll)
+- `numberOf2nBlocks` : refers to the number of 2n positive basis (where n is the dimension) used to generate points for the poll step. This parameter can only be set for oignon poll and extended poll. For classic poll,  numberOf2nBlocks = 1 and for multi poll, numberOf2nBlocks = 2n+1.
 
 Each line of each run history are : `ITER EVAL TIME BBO` and contains at least four columns : 
 - The first column is the iteration number at which a new success was found.
