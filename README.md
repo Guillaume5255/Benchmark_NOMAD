@@ -7,7 +7,7 @@ A real blackbox code is available in [`/src/problems/STYRENE`](/src/problems/STY
 
 All analytical problems are bounded below by 0, are defined for x in `[-5, 5]^n` and are without any constraint. An idea that could be exploited to build constrained analytical problems would be to use one of those analytical problems as objectif, and one or several others as constraints.
 
-Styrene is solved in the box `[0,100]^8.
+Styrene is solved in the box `[0,100]^8`.
 
 When `make` is run in [`/src/runner`](/src/runner), it compiles [`/src/runner/benchmark.cpp`](/src/runner/benchmark.cpp) in [`/run`](/run).
 
